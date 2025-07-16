@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="neon">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>Tangletris — Tetris With Weird Shapes | Free Browser Game</title>
+    <meta
+      name="description"
+      content="Tangletris is a free browser puzzle game: classic Tetris pieces tangled with weird shapes. Ghost piece, hold, hard drop, combos and three retro themes. No downloads, plays on mobile."
+    />
+    <meta name="author" content="Robert Libsansky" />
+    <meta name="theme-color" content="#0b0b1a" />
+    <meta name="color-scheme" content="dark light" />
+
+    <link rel="canonical" href="https://robertlib.github.io/tangletris/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tangletris — Tetris With Weird Shapes" />
+    <meta
+      property="og:description"
+      content="A free browser puzzle game where classic tetrominoes get tangled with hearts, stars, rockets and other odd blocks."
+    />
+    <meta property="og:url" content="https://robertlib.github.io/tangletris/" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0b1a'/%3E%3Crect x='5' y='5' width='9' height='9' rx='2' fill='%2322d3ee'/%3E%3Crect x='17' y='5' width='9' height='9' rx='2' fill='%23f472b6'/%3E%3Crect x='5' y='17' width='9' height='9' rx='2' fill='%23a78bfa'/%3E%3Crect x='17' y='17' width='9' height='9' rx='2' fill='%23fbbf24'/%3E%3C/svg%3E"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-fx" aria-hidden="true">
+      <span class="orb orb-1"></span>
+      <span class="orb orb-2"></span>
+      <span class="orb orb-3"></span>
+      <span class="scanlines"></span>
+    </div>
+
+    <header class="topbar">
+      <h1 class="logo">
+        <span class="logo-a">Tangle</span><span class="logo-b">tris</span>
+      </h1>
+
+      <nav class="toolbar" aria-label="Game settings">
+        <button
+          type="button"
+          class="icon-btn"
+          id="themeBtn"
+          aria-label="Change theme"
+        >
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
+            <circle
+              cx="8"
+              cy="8"
+              r="6.4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <path d="M8 1.6a6.4 6.4 0 0 1 0 12.8z" fill="currentColor" />
+          </svg>
+          <span class="btn-label" id="themeLabel">Neon</span>
+        </button>
+        <button
+          type="button"
+          class="icon-btn"
+          id="sfxBtn"
+          aria-pressed="true"
+          aria-label="Toggle sound effects"
+        >
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M2.6 6.4H5L8.2 3.4v9.2L5 9.6H2.6z" fill="currentColor" />
+            <path
+              d="M10.8 6.2a2.9 2.9 0 0 1 0 3.6M12.8 4.3a5.6 5.6 0 0 1 0 7.4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span class="btn-label">SFX</span>
+        </button>
+        <button
+          type="button"
+          class="icon-btn"
+          id="musicBtn"
+          aria-pressed="true"
+          aria-label="Toggle music"
+        >
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              d="M8.1 11.4V2.9l4.9 1.7v2.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <ellipse cx="5.4" cy="11.6" rx="2.8" ry="2.3" fill="currentColor" />
+          </svg>
+          <span class="btn-label">Music</span>
+        </button>
+      </nav>
+    </header>
+
+    <main class="stage">
+      <aside class="rail rail-left">
+        <section class="panel panel-hold">
+          <h2 class="panel-title">Hold <kbd>C</kbd></h2>
+          <canvas id="holdCanvas" aria-label="Held piece"></canvas>
+        </section>
+
+        <section class="panel panel-score">
+          <div class="stat stat-hero">
+            <span class="stat-label">Score</span>
+            <span class="stat-value" id="score">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Best</span>
+            <span class="stat-value" id="best">0</span>
+          </div>
+        </section>
+      </aside>
+
+      <div class="board-wrap">
+        <div class="board-frame">
+          <canvas id="board" aria-label="Tangletris playfield"></canvas>
+          <div class="overlay hidden" id="overlay" aria-live="polite">
+            <div class="overlay-card" id="overlayCard"></div>
+          </div>
+        </div>
+
+        <div class="level-track" title="Progress to next level">
+          <div class="level-fill" id="levelFill"></div>
+        </div>
+      </div>
+
+      <aside class="rail rail-right">
+        <section class="panel panel-next">
+          <h2 class="panel-title">Next</h2>
+          <canvas id="nextCanvas" aria-label="Upcoming pieces"></canvas>
+          <p class="piece-name" id="pieceName">—</p>
+        </section>
+
+        <section class="panel panel-score">
+          <div class="stat">
+            <span class="stat-label">Lines</span>
+            <span class="stat-value" id="lines">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Level</span>
+            <span class="stat-value" id="level">1</span>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <div class="touchpad" id="touchpad" aria-label="Touch controls">
+      <button type="button" class="tbtn" data-touch="hold" aria-label="Hold">
+        ⇄
+      </button>
+      <button type="button" class="tbtn" data-touch="left" aria-label="Left">
+        ◀
+      </button>
+      <button
+        type="button"
+        class="tbtn tbtn-wide"
+        data-touch="rotate"
+        aria-label="Rotate"
+      >
+        ⟳
+      </button>
+      <button type="button" class="tbtn" data-touch="right" aria-label="Right">
+        ▶
+      </button>
+      <button type="button" class="tbtn" data-touch="down" aria-label="Soft drop">
+        ▼
+      </button>
+      <button
+        type="button"
+        class="tbtn tbtn-accent"
+        data-touch="drop"
+        aria-label="Hard drop"
+      >
+        ⤓
+      </button>
+    </div>
+
+    <section class="info">
+      <article class="info-card">
+        <h2>What is Tangletris?</h2>
+        <p>
+          Tangletris is Tetris that keeps changing its mind. Most of the time
+          you get the seven pieces you know — the line, the square, the S, Z, J,
+          L and T. Then a heart, a rocket or a lopsided star drops in and tangles
+          your neat stack.
+        </p>
+        <p>
+          The first levels are mostly ordinary. Every level you climb pulls more
+          of the strange pieces into the bag, until roughly half of what falls
+          has no business being in a Tetris game at all. How far into the tangle
+          you get is the whole score.
+        </p>
+        <p>
+          Everything you expect from a modern falling-block game is here: a ghost
+          piece showing where the block lands, a hold slot, instant hard drop,
+          wall kicks, combos and back-to-back bonuses. It runs in the browser,
+          works on a phone, and nothing needs installing.
+        </p>
+      </article>
+
+      <article class="info-card">
+        <h2>Controls</h2>
+        <div class="controls-grid">
+          <div class="control-item"><kbd>←</kbd><kbd>→</kbd><span>Move</span></div>
+          <div class="control-item"><kbd>↓</kbd><span>Soft drop</span></div>
+          <div class="control-item">
+            <kbd>↑</kbd><kbd>X</kbd><span>Rotate right</span>
+          </div>
+          <div class="control-item"><kbd>Z</kbd><span>Rotate left</span></div>
+          <div class="control-item"><kbd>Space</kbd><span>Hard drop</span></div>
+          <div class="control-item">
+            <kbd>C</kbd><kbd>Shift</kbd><span>Hold piece</span>
+          </div>
+          <div class="control-item"><kbd>P</kbd><kbd>Esc</kbd><span>Pause</span></div>
+          <div class="control-item"><kbd>R</kbd><span>Restart</span></div>
+          <div class="control-item"><kbd>T</kbd><span>Change theme</span></div>
+          <div class="control-item"><kbd>M</kbd><span>Mute</span></div>
+        </div>
+        <p class="muted">
+          On a touch screen: swipe left and right to move, swipe down to hard
+          drop, tap the board to rotate — or use the buttons under the board.
+        </p>
+      </article>
+
+      <article class="info-card">
+        <h2>Tips for a higher score</h2>
+        <ul class="tips">
+          <li>
+            Keep the stack flat and leave one clean well on the side for the
+            line piece.
+          </li>
+          <li>
+            Bank an awkward shape in the hold slot instead of forcing it into a
+            bad spot.
+          </li>
+          <li>
+            Clearing lines on consecutive drops builds a combo — every extra
+            clear in the chain is worth more.
+          </li>
+          <li>
+            Four lines at once is a <strong>Tangle</strong>, and chaining two in
+            a row multiplies the reward.
+          </li>
+          <li>
+            Watch the ghost piece before you commit; hard drop only when the
+            landing spot is right.
+          </li>
+          <li>
+            Sweeping the board completely empty pays a huge perfect-clear bonus.
+          </li>
+          <li>
+            Odd shapes bury holes under themselves — place them at the edges and
+            keep the middle clean, because they only get more common as you
+            level up.
+          </li>
+        </ul>
+      </article>
+    </section>
+
+    <footer class="site-footer">
+      <p>Made by Robert Libsansky · 2025 · Open source under the MIT licence</p>
+    </footer>
+
+    <noscript>
+      <p style="text-align: center; padding: 2rem">
+        Tangletris needs JavaScript enabled to run.
+      </p>
+    </noscript>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Tangletris",
+        "url": "https://robertlib.github.io/tangletris/",
+        "description": "A free browser puzzle game where classic tetrominoes get tangled with weird shapes.",
+        "genre": ["Puzzle", "Arcade"],
+        "gamePlatform": "Web browser",
+        "applicationCategory": "Game",
+        "operatingSystem": "Any",
+        "author": { "@type": "Person", "name": "Robert Libsansky" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+
+    <script src="script.js"></script>
+  </body>
+</html>
