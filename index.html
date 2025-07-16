@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎮 Tangletris - Crazy Tetris | Free Online Tetris Game</title>
+    <meta
+      name="description"
+      content="Play Tangletris - an exciting free online Tetris game! Crazy Tetris with unexpected blocks, modern graphics and smooth gameplay. Best tetris game for all ages."
+    />
+    <meta
+      name="keywords"
+      content="tetris, game, online, free, puzzle, tangletris, logic game, retro game, browser game, blocks"
+    />
+    <meta name="author" content="Robert Libsansky" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0066cc" />
+
+    <!-- Open Graph meta tags for social media -->
+    <meta
+      property="og:title"
+      content="🎮 Tangletris - Crazy Tetris | Free Online Tetris Game"
+    />
+    <meta
+      property="og:description"
+      content="Play Tangletris - an exciting free online Tetris game! Crazy Tetris with unexpected blocks, modern graphics and smooth gameplay."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://robertlib.github.io/tangletris/" />
+    <meta property="og:site_name" content="Tangletris" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card meta tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="🎮 Tangletris - Crazy Tetris | Free Online Tetris Game"
+    />
+    <meta
+      name="twitter:description"
+      content="Play Tangletris - an exciting free online Tetris game! Crazy Tetris with unexpected blocks, modern graphics and smooth gameplay."
+    />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://robertlib.github.io/tangletris/" />
+
+    <!-- Sitemap -->
+    <link
+      rel="sitemap"
+      type="application/xml"
+      title="Sitemap"
+      href="/sitemap.xml"
+    />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Game",
+        "name": "Tangletris",
+        "description": "Exciting free online Tetris game with unexpected blocks and modern graphics",
+        "url": "https://robertlib.github.io/tangletris/",
+        "author": {
+          "@type": "Person",
+          "name": "Robert Libsansky"
+        },
+        "genre": "Puzzle",
+        "gamePlatform": "Web Browser",
+        "operatingSystem": "Cross-platform",
+        "applicationCategory": "Game",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="game-header">
+        <h1>
+          <span class="block-red">■</span><span class="block-yellow">■</span
+          ><span class="block-green">■</span
+          ><span class="block-blue">■</span> TANGLETRIS
+          <span class="block-blue">■</span><span class="block-green">■</span
+          ><span class="block-yellow">■</span><span class="block-red">■</span>
+        </h1>
+        <p>Crazy Tetris with unexpected blocks!</p>
+      </div>
+
+      <div class="main-content">
+        <div class="info-section">
+          <div class="game-description">
+            <h2>About the Game</h2>
+            <p>
+              Experience the classic <strong>Tetris game</strong> with a modern
+              twist! Tangletris offers exciting gameplay with unexpected block
+              shapes that will challenge your puzzle-solving skills. Play this
+              <strong>free online game</strong> directly in your browser - no
+              downloads required!
+            </p>
+          </div>
+
+          <div class="controls-info">
+            <h3>How to Play</h3>
+            <div class="controls-grid">
+              <div class="control-item">
+                <span class="key">← →</span>
+                <span class="action">Move blocks left/right</span>
+              </div>
+              <div class="control-item">
+                <span class="key">↓</span>
+                <span class="action">Speed up falling</span>
+              </div>
+              <div class="control-item">
+                <span class="key">↑</span>
+                <span class="action">Rotate blocks</span>
+              </div>
+              <div class="control-item">
+                <span class="key">Space</span>
+                <span class="action">Pause game</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-area">
+          <div class="game-board">
+            <canvas id="gameCanvas" width="300" height="600"></canvas>
+            <div id="gameOver" class="game-over hidden">
+              <h2>🎯 Game Over!</h2>
+              <p>Your score: <span id="finalScore">0</span></p>
+              <button id="restartBtn">🔄 Play Again</button>
+            </div>
+          </div>
+
+          <div class="game-sidebar">
+            <div class="next-piece-panel">
+              <h3>Next Piece</h3>
+              <canvas id="nextCanvas" width="120" height="120"></canvas>
+            </div>
+
+            <div class="game-stats">
+              <div class="stat-item">
+                <span class="stat-label">Score</span>
+                <span class="stat-value" id="score">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Lines</span>
+                <span class="stat-value" id="lines">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Level</span>
+                <span class="stat-value" id="level">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="game-features-section">
+        <div class="game-features">
+          <h3>Game Features</h3>
+          <ul>
+            <li>✨ <strong>Free to play</strong> - No registration required</li>
+            <li>
+              🎯 <strong>Classic gameplay</strong> with modern enhancements
+            </li>
+            <li>📱 <strong>Mobile friendly</strong> - Play on any device</li>
+            <li>
+              🧩 <strong>Challenging puzzles</strong> with unexpected twists
+            </li>
+            <li>🏆 <strong>Score tracking</strong> - Beat your high score</li>
+            <li>⚡ <strong>Instant play</strong> - No downloads needed</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <footer class="game-footer">
+      <div class="footer-content">
+        <h2>Why Play Tangletris?</h2>
+        <p>
+          Tangletris is a modern take on the classic
+          <strong>Tetris puzzle game</strong>. Challenge yourself with
+          unexpected block shapes and enjoy hours of
+          <strong>free entertainment</strong>. Perfect for players of all ages
+          who love <strong>logic games</strong> and
+          <strong>puzzle challenges</strong>.
+        </p>
+
+        <div class="footer-keywords">
+          <p>
+            <small
+              >Tags: tetris game, online puzzle, free browser game, logic game,
+              tetris online, puzzle game, retro game, classic game, block
+              puzzle</small
+            >
+          </p>
+        </div>
+
+        <p class="footer-copyright">
+          © 2025 Robert Libsansky. Made with ❤️ for puzzle game enthusiasts.
+        </p>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
