@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scene preview</title>
+    <!-- Development harness: renders one background scene through the real
+         Stage with a stand-in board, so a scene can be judged in isolation.
+         Usage: dev/scene.html?scene=neon&t=12 -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #000;
+        overflow: hidden;
+        font: 12px system-ui, sans-serif;
+        color: #fff;
+      }
+      #gl {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .board {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        width: min(330px, 78vw);
+        aspect-ratio: 10.9 / 20.9;
+        transform: translate(-50%, -46%);
+        background: rgba(8, 8, 20, 0.78);
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        border-radius: 10px;
+      }
+      .panel {
+        position: fixed;
+        top: 22%;
+        width: 150px;
+        height: 230px;
+        background: rgba(20, 20, 40, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 14px;
+        backdrop-filter: blur(12px);
+      }
+      .panel.l {
+        left: calc(50% - 360px);
+      }
+      .panel.r {
+        right: calc(50% - 360px);
+      }
+      @media (max-width: 900px) {
+        .panel {
+          display: none;
+        }
+      }
+      #info {
+        position: fixed;
+        left: 8px;
+        bottom: 8px;
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gl"></canvas>
+    <div class="panel l"></div>
+    <div class="board"></div>
+    <div class="panel r"></div>
+    <div id="info"></div>
+    <script type="module">
+      import { Stage } from "../js/view/stage.js";
+
+      const q = new URLSearchParams(location.search);
+      const name = q.get("scene") || "neon";
+      const t0 = parseFloat(q.get("t") || "0");
+      const bpm = parseFloat(q.get("bpm") || "110");
+      const energy = parseFloat(q.get("energy") || "0.6");
+      const intensity = parseFloat(q.get("intensity") || "0");
+
+      const mod = await import("../js/scenes/" + name + ".js");
+      const stage = new Stage(document.getElementById("gl"), {});
+      if (q.get("quality")) stage.quality = q.get("quality");
+      // Headless renderers are slow; keep the quality fixed for screenshots.
+      if (!q.get("adapt")) stage.trackPerformance = () => {};
+      stage.setScene(mod.default, true);
+      // Worlds run on their own clock (random start); pin it for repeatable shots.
+      stage.sceneTime = t0;
+
+      // A fake beat so audio-reactive bits can be judged without sound.
+      const audio = {
+        kick: 0, snare: 0, hat: 0, chord: 0, accent: 0,
+        beat: 0, bar: 0, energy, intensity, level: 1,
+      };
+      let last = performance.now();
+      let t = t0;
+      let lastBeat = -1;
+      function frame(now) {
+        requestAnimationFrame(frame);
+        const dt = Math.max(0, Math.min(0.1, (now - last) / 1000));
+        last = now;
+        t += dt;
+        const beats = (t * bpm) / 60;
+        const b = Math.floor(beats);
+        audio.beat = beats - b;
+        audio.bar = (beats / 4) % 1;
+        if (b !== lastBeat) {
+          lastBeat = b;
+          audio.kick = 1;
+          if (b % 2 === 1) audio.snare = 1;
+          if (b % 4 === 0) audio.chord = 1;
+          if (b % 8 === 0) audio.accent = 1;
+        }
+        if (Math.floor(beats * 2) !== Math.floor((beats - (dt * bpm) / 60) * 2)) audio.hat = 1;
+        const d = Math.exp(-dt * 7);
+        audio.kick *= d; audio.snare *= d; audio.hat *= d;
+        audio.chord *= Math.exp(-dt * 2.5); audio.accent *= Math.exp(-dt * 2);
+        stage.render(t, dt, audio);
+      }
+      requestAnimationFrame(frame);
+      window.__stage = stage;
+      window.__ready = true;
+      document.getElementById("info").textContent = mod.default.name + " · " + stage.quality;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex" />
+    <title>Track render</title>
+    <!-- Development harness: renders a soundtrack offline and reports levels,
+         or lets you download it as a WAV.
+         Usage: dev/audio.html?track=neon&secs=60&intensity=0&level=1 -->
+    <style>
+      body { font: 13px system-ui, sans-serif; background: #111; color: #ddd; padding: 20px; }
+      pre { white-space: pre-wrap; }
+      a { color: #7df; }
+    </style>
+  </head>
+  <body>
+    <pre id="out">Rendering…</pre>
+    <script type="module">
+      import { Engine } from "../js/audio/engine.js";
+      import { Song } from "../js/audio/sequencer.js";
+      import { TRACKS } from "../js/audio/tracks.js";
+
+      const q = new URLSearchParams(location.search);
+      const id = q.get("track") || "neon";
+      const secs = parseFloat(q.get("secs") || "60");
+      const sr = 44100;
+
+      function wav(buffer) {
+        const ch = buffer.numberOfChannels;
+        const len = buffer.length;
+        const data = new DataView(new ArrayBuffer(44 + len * ch * 2));
+        const str = (o, s) => [...s].forEach((c, i) => data.setUint8(o + i, c.charCodeAt(0)));
+        str(0, "RIFF");
+        data.setUint32(4, 36 + len * ch * 2, true);
+        str(8, "WAVEfmt ");
+        data.setUint32(16, 16, true);
+        data.setUint16(20, 1, true);
+        data.setUint16(22, ch, true);
+        data.setUint32(24, sr, true);
+        data.setUint32(28, sr * ch * 2, true);
+        data.setUint16(32, ch * 2, true);
+        data.setUint16(34, 16, true);
+        str(36, "data");
+        data.setUint32(40, len * ch * 2, true);
+        const chans = [];
+        for (let c = 0; c < ch; c++) chans.push(buffer.getChannelData(c));
+        let o = 44;
+        for (let i = 0; i < len; i++)
+          for (let c = 0; c < ch; c++) {
+            const v = Math.max(-1, Math.min(1, chans[c][i]));
+            data.setInt16(o, v * 32767, true);
+            o += 2;
+          }
+        return new Blob([data], { type: "audio/wav" });
+      }
+
+      function fft(re, im) {
+        const n = re.length;
+        for (let i = 1, j = 0; i < n; i++) {
+          let bit = n >> 1;
+          for (; j & bit; bit >>= 1) j ^= bit;
+          j ^= bit;
+          if (i < j) {
+            [re[i], re[j]] = [re[j], re[i]];
+            [im[i], im[j]] = [im[j], im[i]];
+          }
+        }
+        for (let len = 2; len <= n; len <<= 1) {
+          const ang = (-2 * Math.PI) / len;
+          const wr = Math.cos(ang);
+          const wi = Math.sin(ang);
+          for (let i = 0; i < n; i += len) {
+            let cr = 1;
+            let ci = 0;
+            for (let k = 0; k < len / 2; k++) {
+              const ur = re[i + k];
+              const ui = im[i + k];
+              const vr = re[i + k + len / 2] * cr - im[i + k + len / 2] * ci;
+              const vi = re[i + k + len / 2] * ci + im[i + k + len / 2] * cr;
+              re[i + k] = ur + vr;
+              im[i + k] = ui + vi;
+              re[i + k + len / 2] = ur - vr;
+              im[i + k + len / 2] = ui - vi;
+              const t = cr * wr - ci * wi;
+              ci = cr * wi + ci * wr;
+              cr = t;
+            }
+          }
+        }
+      }
+
+      async function render() {
+        const t0 = performance.now();
+        const ctx = new OfflineAudioContext(2, Math.ceil(sr * secs), sr);
+        const eng = new Engine();
+        eng.attach(ctx);
+        const song = new Song(eng, TRACKS[id]);
+        song.level = parseFloat(q.get("level") || "1");
+        song.intensity = parseFloat(q.get("intensity") || "0");
+        await song.load(q.get("quality") || "high");
+        // ?solo=pad,bass mutes every other part (fx too) to measure one voice.
+        if (q.get("solo")) {
+          const solo = q.get("solo").split(",");
+          for (const name in song.parts) if (solo.indexOf(name) === -1) song.parts[name].strip.input.gain.value = 0;
+          song.fxStrip.input.gain.value = 0;
+        }
+        song.start(0.05, true);
+        // Mirror what the live scheduler would do, bar by bar.
+        const sections = [];
+        let lastSec = null;
+        while (song.nextTime < secs) {
+          song.scheduleUntil(song.nextTime + 0.5);
+          if (song.section !== lastSec) {
+            lastSec = song.section;
+            sections.push({ t: +song.nextTime.toFixed(2), energy: song.section.energy, prog: song.section.prog });
+          }
+        }
+        const buf = await ctx.startRendering();
+        const L = buf.getChannelData(0);
+        const R = buf.getChannelData(1);
+        let peak = 0;
+        let nan = 0;
+        let sum = 0;
+        const perSec = [];
+        for (let s = 0; s < Math.floor(secs); s++) {
+          let acc = 0;
+          for (let i = s * sr; i < (s + 1) * sr; i++) {
+            const a = L[i];
+            const b = R[i];
+            if (a !== a || b !== b) nan++;
+            const m = Math.max(Math.abs(a), Math.abs(b));
+            if (m > peak) peak = m;
+            acc += a * a + b * b;
+          }
+          sum += acc;
+          perSec.push(Math.round(10 * Math.log10(acc / (2 * sr) + 1e-12)));
+        }
+        const rms = 10 * Math.log10(sum / (2 * sr * Math.floor(secs)) + 1e-12);
+        // Average spectrum per band, dB relative to the loudest band.
+        const N = 2048;
+        const edges = [20, 60, 250, 1000, 4000, 10000, 20000];
+        const names = ["sub", "bass", "lowmid", "mid", "high", "air"];
+        const band = new Float64Array(names.length);
+        const re = new Float64Array(N);
+        const im = new Float64Array(N);
+        for (let start = sr * 2; start + N < L.length; start += N * 4) {
+          for (let i = 0; i < N; i++) {
+            const w = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1));
+            re[i] = (L[start + i] + R[start + i]) * 0.5 * w;
+            im[i] = 0;
+          }
+          fft(re, im);
+          for (let k = 1; k < N / 2; k++) {
+            const f = (k * sr) / N;
+            const pw = re[k] * re[k] + im[k] * im[k];
+            for (let bI = 0; bI < names.length; bI++) if (f >= edges[bI] && f < edges[bI + 1]) band[bI] += pw;
+          }
+        }
+        const maxB = Math.max(...band);
+        const bands = {};
+        names.forEach((n, i) => (bands[n] = Math.round(10 * Math.log10(band[i] / maxB + 1e-12))));
+        const report = {
+          track: id,
+          renderMs: Math.round(performance.now() - t0),
+          rmsDb: +rms.toFixed(1),
+          peak: +peak.toFixed(3),
+          nan,
+          perSecDb: perSec.join(" "),
+          bands,
+          sections,
+        };
+        window.__report = report;
+        document.getElementById("out").textContent = JSON.stringify(report, null, 1);
+        const url = URL.createObjectURL(wav(buf));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = id + ".wav";
+        a.textContent = "Download " + id + ".wav";
+        document.body.appendChild(a);
+        window.__wav = async () => {
+          const ab = await wav(buf).arrayBuffer();
+          let s = "";
+          const u8 = new Uint8Array(ab);
+          for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+          return btoa(s);
+        };
+      }
+      render().catch((e) => {
+        window.__report = { error: e.message, stack: e.stack };
+        document.getElementById("out").textContent = e.stack;
+      });
+    </script>
+  </body>
+</html>
