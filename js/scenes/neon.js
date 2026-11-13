@@ -233,6 +233,12 @@ export default {
 
     let scroll = 0;
     let speed = 70;
+    // The road runs on for ever, but a float32 uniform does not: wrapped
+    // round every few hours, so the mountains never start to step. A
+    // multiple of the grid and pylon periods, so only the far-off mountain
+    // shapes change at the wrap — never the grid or the pylons.
+    const SCROLL_WRAP = 11592 * 90; // lcm(GRID, PYLONS * PYLON_GAP) × 90 ≈ 2^20
+    const pylonColor = new THREE.Color("#25e2ff");
 
     return {
       scene,
@@ -241,6 +247,7 @@ export default {
         const target = 62 + a.energy * 40 + a.intensity * 30;
         speed += (target - speed) * Math.min(1, dt * 0.8);
         scroll += dt * speed * (env.reducedMotion ? 0.3 : 1);
+        if (scroll >= SCROLL_WRAP) scroll -= SCROLL_WRAP;
 
         terrainUniforms.uScroll.value = scroll;
         terrainUniforms.uGridScroll.value = scroll % GRID;
@@ -263,7 +270,7 @@ export default {
         }
         pylons.instanceMatrix.needsUpdate = true;
         caps.instanceMatrix.needsUpdate = true;
-        pylonMat.color.copy(hdr("#25e2ff", 1.4 + a.snare * 1.6));
+        pylonMat.color.copy(pylonColor).multiplyScalar(1.4 + a.snare * 1.6);
 
         for (const s of solids) {
           s.obj.rotation.x = s.phase + t * s.spin.x;

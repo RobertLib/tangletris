@@ -57,6 +57,7 @@ export class Previews {
 
     this.slots = []; // { el, id, dim, pop, lastId }
     this.size = { w: 0, h: 0, pr: 1 };
+    this.motion = 1; // 0..1, like Board.motion: how much the pieces sway
   }
 
   buildEnvironment() {
@@ -166,10 +167,11 @@ export class Previews {
       this.mesh.instanceColor.needsUpdate = true;
       this.flash.needsUpdate = true;
       this.group.scale.setScalar(scale);
+      const sway = this.motion;
       this.group.rotation.set(
-        0.22 + Math.sin(t * 0.7 + i * 1.7) * 0.1,
-        Math.sin(t * 0.9 + i * 2.1) * 0.42,
-        Math.sin(t * 0.5 + i) * 0.04
+        0.22 + Math.sin(t * 0.7 + i * 1.7) * 0.1 * sway,
+        Math.sin(t * 0.9 + i * 2.1) * 0.42 * sway,
+        Math.sin(t * 0.5 + i) * 0.04 * sway
       );
 
       this.camera.aspect = aspect;

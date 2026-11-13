@@ -6,10 +6,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <title>Tangletris — 3D tetris s divnými tvary | Hra zdarma v prohlížeči</title>
+    <title>Tangletris — 3D Tetris s divnými tvary | Hra zdarma v prohlížeči</title>
     <meta
       name="description"
-      content="Tangletris je česká 3D hra ve stylu tetrisu zdarma: klasické kostky zamotané s divnými tvary, naklánějící se deska a šest animovaných světů s živě skládanou hudbou. Denní výzva, sprint, zen. Bez stahování, hraje i na mobilu."
+      content="Tangletris je česká 3D hra ve stylu Tetrisu zdarma: klasické kostky zamotané s divnými tvary, naklánějící se deska a šest animovaných světů s živě skládanou hudbou. Denní Tangle, Sprint, Zen. Bez stahování, hraje i na mobilu."
     />
     <meta name="author" content="Robert Libsansky" />
     <meta name="theme-color" content="#0c0620" />
@@ -24,7 +24,7 @@
     <meta property="og:site_name" content="Tangletris" />
     <meta property="og:locale" content="cs_CZ" />
     <meta property="og:locale:alternate" content="en_US" />
-    <meta property="og:title" content="Tangletris — 3D tetris s divnými tvary" />
+    <meta property="og:title" content="Tangletris — 3D Tetris s divnými tvary" />
     <meta
       property="og:description"
       content="Hra zdarma v prohlížeči, kde se klasické kostky zamotají se srdíčky, hvězdami, raketami a dalšími divnými tvary — šest animovaných světů, Denní Tangle a výzvy pro kamarády."
@@ -68,6 +68,16 @@
       type="font/woff2"
       crossorigin
     />
+    <!-- Czech labels are set in Space Grotesk, and its ě š č ř ž ů live in
+         the latin-ext subset: without this they arrive late and the text
+         jumps when they do. -->
+    <link
+      rel="preload"
+      href="../fonts/space-grotesk-latin-ext.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
@@ -95,7 +105,7 @@
           type="button"
           class="icon-btn"
           id="sceneBtn"
-          aria-label="Změnit svět"
+          aria-label="Cesta — změnit svět"
           title="Změnit svět (T)"
         >
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -142,7 +152,7 @@
           class="icon-btn"
           id="sfxBtn"
           aria-pressed="true"
-          aria-label="Zvukové efekty"
+          aria-label="Zvuky — zvukové efekty"
           title="Zvukové efekty (M)"
         >
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -184,7 +194,7 @@
           hreflang="en"
           lang="en"
           title="Play in English"
-          aria-label="English version"
+          aria-label="EN — English version"
           >EN</a
         >
       </nav>
@@ -194,7 +204,7 @@
       <aside class="rail rail-left">
         <section class="panel panel-hold">
           <h2 class="panel-title">Odložit <kbd>C</kbd></h2>
-          <div class="slot slot-hold" id="holdSlot" aria-label="Odložená kostka"></div>
+          <div class="slot slot-hold" id="holdSlot" role="img" aria-label="Odložená kostka: žádná"></div>
         </section>
 
         <section class="panel panel-score">
@@ -228,7 +238,7 @@
       <aside class="rail rail-right">
         <section class="panel panel-next">
           <h2 class="panel-title">Další</h2>
-          <div class="slots" id="nextSlots" aria-label="Následující kostky">
+          <div class="slots" id="nextSlots" role="img" aria-label="Následující kostky: žádná">
             <div class="slot slot-next"></div>
             <div class="slot slot-next"></div>
             <div class="slot slot-next"></div>
@@ -254,7 +264,7 @@
     <!-- Sbírka tvarů a úspěchy se otevírají tady. -->
     <dialog class="sheet" id="sheet" aria-label="Sbírka"></dialog>
 
-    <div class="touchpad" id="touchpad" aria-label="Dotykové ovládání">
+    <div class="touchpad" id="touchpad" role="group" aria-label="Dotykové ovládání">
       <button type="button" class="tbtn" data-touch="hold" aria-label="Odložit">
         ⇄
       </button>
@@ -289,7 +299,7 @@
       <article class="info-card">
         <h2>Co je Tangletris?</h2>
         <p>
-          Tangletris je tetris, který si to pořád rozmýšlí. Většinou dostáváš
+          Tangletris je Tetris, který si to pořád rozmýšlí. Většinou dostáváš
           sedm kostek, které znáš — čáru, čtverec, S, Z, J, L a T. Pak ale
           spadne srdce, raketa nebo křivá hvězda a tvoji úhlednou stavbu
           pořádně zamotá.
@@ -346,7 +356,7 @@
           <div class="control-item">
             <kbd>↑</kbd><kbd>X</kbd><span>Otočit doprava</span>
           </div>
-          <div class="control-item"><kbd data-code="KeyZ">Z</kbd><span>Otočit doleva</span></div>
+          <div class="control-item"><kbd data-code="KeyZ">Y</kbd><span>Otočit doleva</span></div>
           <div class="control-item"><kbd>Mezerník</kbd><span>Shodit</span></div>
           <div class="control-item">
             <kbd>C</kbd><kbd>Shift</kbd><span>Odložit kostku</span>
@@ -406,9 +416,9 @@
             Ano. Táhni a ťukej po desce, nebo použij tlačítka pod ní. Když si hru
             přidáš na plochu, hraje i offline.
           </dd>
-          <dt>Je to tetris?</dt>
+          <dt>Je to Tetris?</dt>
           <dd>
-            Je to nezávislá hra ve stylu tetrisu s vlastním nápadem: dva tucty
+            Je to nezávislá hra ve stylu Tetrisu s vlastním nápadem: sedmnáct
             divných tvarů, 3D deska a šest světů s živě skládanou hudbou.
           </dd>
           <dt>Kde se ukládá moje skóre?</dt>
@@ -461,12 +471,12 @@
         "name": "Tangletris",
         "url": "https://robertlib.github.io/tangletris/cs/",
         "image": "https://robertlib.github.io/tangletris/og-image.jpg",
-        "description": "3D hra ve stylu tetrisu zdarma v prohlížeči: klasické kostky zamotané s divnými tvary, šest animovaných světů s živě skládanou hudbou. Módy: Maraton, Denní Tangle, Sprint, Chaos a Zen.",
+        "description": "3D hra ve stylu Tetrisu zdarma v prohlížeči: klasické kostky zamotané s divnými tvary, šest animovaných světů s živě skládanou hudbou. Módy: Maraton, Denní Tangle, Sprint, Chaos a Zen.",
         "inLanguage": "cs",
         "genre": ["Puzzle", "Arcade"],
         "playMode": "SinglePlayer",
         "gamePlatform": "Web browser",
-        "applicationCategory": "Game",
+        "applicationCategory": "GameApplication",
         "operatingSystem": "Any",
         "isAccessibleForFree": true,
         "sameAs": ["https://github.com/RobertLib/tangletris"],

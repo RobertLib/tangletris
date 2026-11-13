@@ -58,7 +58,7 @@ worlds — each with its own soundtrack, composed live in your browser.
 | `←` `→`       | Move                         |
 | `↓`           | Soft drop                    |
 | `↑` / `X`     | Rotate right                 |
-| `Z`           | Rotate left (key beside `X`) |
+| `Z` / `Y`     | Rotate left (also the key beside `X` on any layout) |
 | `Space`       | Hard drop                    |
 | `C` / `Shift` | Hold piece                   |
 | `P` / `Esc`   | Pause                        |
@@ -118,7 +118,8 @@ More: [how to play](https://robertlib.github.io/tangletris/how-to-play/) ·
   game's pieces; the Daily Tangle's seed is the date, no server involved
 - **Worlds load lazily** — only the first world's code is fetched at boot, the
   rest follow in the background
-- **Offline** — a small service worker (network first for the site, cache
+- **Offline** — a small service worker (network first for the site, with a
+  few seconds' patience before the cached copy answers; cache
   first for the version-pinned CDN)
 
 ### Project layout
@@ -136,8 +137,8 @@ js/share.js               result card, share sheet / clipboard
 js/view/                  stage (renderer, bloom, transitions), board, previews
 js/scenes/                the six worlds, meta.js (names, palettes), shared helpers
 js/audio/                 engine, theory, sequencer, tracks, director + sfx
-sw.js, manifest.webmanifest, icons/   offline support and install
-pieces/, worlds/, how-to-play/, daily/, cs/*/   guide pages (generated)
+sw.js, manifest.webmanifest, cs/manifest.webmanifest, icons/   offline support and install
+pieces/, worlds/, how-to-play/, daily/, cs/*/   guide pages (generated), styled by pages.css
 fonts/                    self-hosted web fonts (SIL Open Font License)
 dev/                      development harnesses and generators (see below)
 ```
@@ -163,7 +164,7 @@ Two harnesses help when working on the worlds and the music:
 
 Two generators write checked-in files, so the site itself never needs a build:
 
-- `node dev/build-pages.mjs` — the guide pages (EN + CS) and `sitemap.xml`
+- `node dev/build-pages.mjs` — the guide pages (EN + CS) and `sitemap.xml` (Node 22+)
 - `node dev/make-icons.mjs` — `icon.svg` and the PNG app icons
 
 ## 📱 Browser Support

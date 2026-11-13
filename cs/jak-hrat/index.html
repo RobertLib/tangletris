@@ -31,6 +31,7 @@
 
     <link rel="icon" href="../../icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+    <link rel="manifest" href="../../cs/manifest.webmanifest">
     <link rel="preload" href="../../fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../../fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../../fonts/space-grotesk-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
@@ -39,7 +40,7 @@
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Tangletris","item":"https://robertlib.github.io/tangletris/cs/"},{"@type":"ListItem","position":2,"name":"Jak hrát","item":"https://robertlib.github.io/tangletris/cs/jak-hrat/"}]}
 </script>
     <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Je Tangletris zdarma?","acceptedAnswer":{"@type":"Answer","text":"Ano. Tangletris hraješ zdarma přímo v prohlížeči, bez registrace a bez stahování. Navíc je open source pod licencí MIT."}},{"@type":"Question","name":"Dá se Tangletris hrát na mobilu?","acceptedAnswer":{"@type":"Answer","text":"Ano, v každém aktuálním mobilním prohlížeči s WebGL 2. Přejetím prstu kostku posuneš, přejetím dolů shodíš a klepnutím otočíš – nebo použij tlačítka pod deskou."}},{"@type":"Question","name":"Jde hru nainstalovat a hrát offline?","acceptedAnswer":{"@type":"Answer","text":"Ano. V Chromu nebo Edgi zvol Instalovat, v Safari Sdílet → Přidat na plochu. Nainstalovaný Tangletris se otevírá jako aplikace a funguje i bez připojení."}},{"@type":"Question","name":"Je to Tetris?","acceptedAnswer":{"@type":"Answer","text":"Ne. Tangletris je nezávislá hra ve stylu Tetrisu a se společností The Tetris Company nijak nesouvisí. Princip – mazání plných řad – je stejný, ale 17 z 24 kostek jsou divné tvary, které klasická hra nemá, a navíc tu je nakláněná 3D deska, šest světů a generovaná hudba."}},{"@type":"Question","name":"Co je Denní Tangle?","acceptedAnswer":{"@type":"Answer","text":"Tříminutová hra se stejnými kostkami pro všechny, která se obnovuje o půlnoci místního času. Každý den má vlastní zamotanost, série počítá dny, kdy hraješ v kuse, a výsledek můžeš sdílet. Víc na stránce Denní výzva."}},{"@type":"Question","name":"Jak vyzvat kamaráda?","acceptedAnswer":{"@type":"Answer","text":"Po hře stiskni Sdílet. V Maratonu, Sprintu a Chaosu nese odkaz seed hry, takže kamarád dostane stejné kostky a uvidí tvoje skóre – nebo čas ve Sprintu –, které má překonat."}},{"@type":"Question","name":"Kde se ukládá moje skóre?","acceptedAnswer":{"@type":"Answer","text":"V místním úložišti prohlížeče, jen na tomhle zařízení. Žádné účty ani servery: rekordy, série Denní výzvy, sbírka tvarů i úspěchy zůstávají u tebe – a smazáním dat webu zmizí."}},{"@type":"Question","name":"Proč hra potřebuje WebGL 2 a co když se seká?","acceptedAnswer":{"@type":"Answer","text":"Deska i světy jsou 3D v reálném čase. Tangletris si kvalitu přizpůsobuje sám – vyhlazování, pak rozlišení, nakonec bloom –, aby hra běžela plynule. Pokud je to pořád těžké, klávesou V vypneš náklon a pohyb desky."}},{"@type":"Question","name":"Jak vzniká hudba?","acceptedAnswer":{"@type":"Answer","text":"Generuje se živě v prohlížeči přes Web Audio API, bez jediné nahrávky. Každý svět má vlastní skladbu; melodie a přechody se při každém opakování vytvoří znovu, tempo roste s levelem a zvukové efekty hrají v tónině."}},{"@type":"Question","name":"Kolik je ve hře tvarů?","acceptedAnswer":{"@type":"Answer","text":"24: sedm klasických tetromin a 17 divných tvarů, od jednopolíčkové Tečky po osmipolíčkovou Raketu. Všechny i s radami najdeš na stránce Tvary."}}]}
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Je Tangletris zdarma?","acceptedAnswer":{"@type":"Answer","text":"Ano. Tangletris hraješ zdarma přímo v prohlížeči, bez registrace a bez stahování. Navíc je open source pod licencí MIT."}},{"@type":"Question","name":"Dá se Tangletris hrát na mobilu?","acceptedAnswer":{"@type":"Answer","text":"Ano, v každém aktuálním mobilním prohlížeči s WebGL 2. Přejetím prstu kostku posuneš, přejetím dolů shodíš a klepnutím otočíš – nebo použij tlačítka pod deskou."}},{"@type":"Question","name":"Jde hru nainstalovat a hrát offline?","acceptedAnswer":{"@type":"Answer","text":"Ano. Otevři hru a v Chromu nebo Edgi zvol Instalovat, v Safari Sdílet → Přidat na plochu. Nainstalovaný Tangletris se otevírá jako aplikace a funguje i bez připojení."}},{"@type":"Question","name":"Je to Tetris?","acceptedAnswer":{"@type":"Answer","text":"Ne. Tangletris je nezávislá hra ve stylu Tetrisu a se společností The Tetris Company nijak nesouvisí. Princip – mazání plných řad – je stejný, ale 17 z 24 kostek jsou divné tvary, které klasická hra nemá, a navíc tu je nakláněná 3D deska, šest světů a generovaná hudba."}},{"@type":"Question","name":"Co je Denní Tangle?","acceptedAnswer":{"@type":"Answer","text":"Tříminutová hra se stejnými kostkami pro všechny, která se obnovuje o půlnoci místního času. Každý den má vlastní zamotanost, série počítá dny, kdy hraješ v kuse, a výsledek můžeš sdílet. Víc na stránce Denní Tangle."}},{"@type":"Question","name":"Jak vyzvat kamaráda?","acceptedAnswer":{"@type":"Answer","text":"Po hře stiskni Sdílet. V Maratonu, Sprintu a Chaosu nese odkaz seed hry, takže kamarád dostane stejné kostky a uvidí tvoje skóre – nebo čas ve Sprintu –, které má překonat."}},{"@type":"Question","name":"Kde se ukládá moje skóre?","acceptedAnswer":{"@type":"Answer","text":"V místním úložišti prohlížeče, jen na tomhle zařízení. Žádné účty ani servery: rekordy, série v Denním Tanglu, sbírka tvarů i úspěchy zůstávají u tebe – a smazáním dat webu zmizí."}},{"@type":"Question","name":"Proč hra potřebuje WebGL 2 a co když se seká?","acceptedAnswer":{"@type":"Answer","text":"Deska i světy jsou 3D v reálném čase. Tangletris si kvalitu přizpůsobuje sám – vyhlazování, pak rozlišení, nakonec bloom –, aby hra běžela plynule. Pokud je to pořád těžké, klávesou V vypneš náklon a pohyb desky."}},{"@type":"Question","name":"Jak vzniká hudba?","acceptedAnswer":{"@type":"Answer","text":"Generuje se živě v prohlížeči přes Web Audio API, bez jediné nahrávky. Každý svět má vlastní skladbu; melodie a přechody se při každém opakování vytvoří znovu, tempo roste s levelem a zvukové efekty hrají v tónině."}},{"@type":"Question","name":"Kolik je ve hře tvarů?","acceptedAnswer":{"@type":"Answer","text":"24: sedm klasických tetromin a 17 divných tvarů, od jednopolíčkové Tečky po osmipolíčkovou Raketu. Všechny i s radami najdeš na stránce Tvary."}}]}
 </script>
   </head>
   <body>
@@ -54,7 +55,7 @@
           <li><a href="./" aria-current="page">Jak hrát</a></li>
           <li><a href="../tvary/">Tvary</a></li>
           <li><a href="../svety/">Světy</a></li>
-          <li><a href="../denni/">Denní výzva</a></li>
+          <li><a href="../denni/">Denní Tangle</a></li>
           </ul>
         </nav>
         <a class="lang-switch" href="../../how-to-play/" hreflang="en" lang="en" aria-label="This page in English">English</a>
@@ -221,7 +222,7 @@
             </div>
             <div class="card">
               <h3>Sbírka a úspěchy</h3>
-              <p>Hra si vede přehled, které z 24 tvarů máš objevené a kolikrát byl který položen. Úspěchy oslavují chvíle, které stojí za zapamatování: první Tangle, Tangle divným tvarem, řadu smazanou Raketou, prázdnou desku, cestu až do Inferna, dokončený Sprint, tři dny Denní výzvy po sobě, všech 24 objevených tvarů – a další.</p>
+              <p>Hra si vede přehled, které z 24 tvarů máš objevené a kolikrát byl který položen. Úspěchy oslavují chvíle, které stojí za zapamatování: první Tangle, Tangle divným tvarem, řadu smazanou Raketou, prázdnou desku, cestu až do Inferna, dokončený Sprint, tři dny Denního Tanglu po sobě, všech 24 objevených tvarů – a další.</p>
             </div>
           </div>
         </section>
@@ -258,7 +259,7 @@
             </div>
             <div class="card">
               <h3>Jde hru nainstalovat a hrát offline?</h3>
-              <p>Ano. V Chromu nebo Edgi zvol Instalovat, v Safari Sdílet → Přidat na plochu. Nainstalovaný Tangletris se otevírá jako aplikace a funguje i bez připojení.</p>
+              <p>Ano. Otevři hru a v Chromu nebo Edgi zvol Instalovat, v Safari Sdílet → Přidat na plochu. Nainstalovaný Tangletris se otevírá jako aplikace a funguje i bez připojení.</p>
             </div>
             <div class="card">
               <h3>Je to Tetris?</h3>
@@ -266,7 +267,7 @@
             </div>
             <div class="card">
               <h3>Co je Denní Tangle?</h3>
-              <p>Tříminutová hra se stejnými kostkami pro všechny, která se obnovuje o půlnoci místního času. Každý den má vlastní zamotanost, série počítá dny, kdy hraješ v kuse, a výsledek můžeš sdílet. Víc na stránce <a href="../denni/">Denní výzva</a>.</p>
+              <p>Tříminutová hra se stejnými kostkami pro všechny, která se obnovuje o půlnoci místního času. Každý den má vlastní zamotanost, série počítá dny, kdy hraješ v kuse, a výsledek můžeš sdílet. Víc na stránce <a href="../denni/">Denní Tangle</a>.</p>
             </div>
             <div class="card">
               <h3>Jak vyzvat kamaráda?</h3>
@@ -274,7 +275,7 @@
             </div>
             <div class="card">
               <h3>Kde se ukládá moje skóre?</h3>
-              <p>V místním úložišti prohlížeče, jen na tomhle zařízení. Žádné účty ani servery: rekordy, série Denní výzvy, sbírka tvarů i úspěchy zůstávají u tebe – a smazáním dat webu zmizí.</p>
+              <p>V místním úložišti prohlížeče, jen na tomhle zařízení. Žádné účty ani servery: rekordy, série v Denním Tanglu, sbírka tvarů i úspěchy zůstávají u tebe – a smazáním dat webu zmizí.</p>
             </div>
             <div class="card">
               <h3>Proč hra potřebuje WebGL 2 a co když se seká?</h3>
@@ -310,7 +311,7 @@
           <li><a href="./" aria-current="page">Jak hrát</a></li>
           <li><a href="../tvary/">Tvary</a></li>
           <li><a href="../svety/">Světy</a></li>
-          <li><a href="../denni/">Denní výzva</a></li>
+          <li><a href="../denni/">Denní Tangle</a></li>
           </ul>
         </nav>
         <p>Autor: Robert Libsansky · Zdarma a open source pod <a href="https://github.com/RobertLib/tangletris/blob/main/LICENSE">licencí MIT</a> · <a href="https://github.com/RobertLib/tangletris">Zdrojový kód na GitHubu</a></p>

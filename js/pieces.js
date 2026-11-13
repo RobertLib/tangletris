@@ -31,7 +31,7 @@ export const PIECES = [
   { name: "Letter A", cs: "Písmeno A", emoji: "🅰️", color: "#f472b6", weight: 1, cells: [[0, 1, 0], [1, 1, 1], [1, 0, 1], [1, 0, 1]] },
   { name: "Spiral", cs: "Spirála", emoji: "🌀", color: "#818cf8", weight: 1, cells: [[1, 1, 1], [0, 0, 1], [1, 1, 1]] },
   { name: "Rocket", cs: "Raketa", emoji: "🚀", color: "#ef4444", weight: 1, cells: [[0, 1, 0], [1, 1, 1], [1, 1, 1], [0, 1, 0]] },
-  { name: "Dice", cs: "Kostka", emoji: "🎲", color: "#e879f9", weight: 1, cells: [[1, 0, 1], [0, 1, 0], [1, 0, 1]] },
+  { name: "Dice", cs: "Hrací kostka", emoji: "🎲", color: "#e879f9", weight: 1, cells: [[1, 0, 1], [0, 1, 0], [1, 0, 1]] },
 ];
 
 export const CLASSIC_COUNT = 7;

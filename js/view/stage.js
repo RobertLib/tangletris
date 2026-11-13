@@ -31,6 +31,14 @@ const LADDER = [
 const PERF_WINDOW = 2; // seconds of frames per verdict
 const SLOW_FRAME = 1 / 45;
 const FAST_FRAME = 1 / 55;
+// How long a learnt limit holds. A floor ("going lower did not help") is
+// let go soon, so a device that heats up and slows down can still step
+// down; a ceiling ("going higher was too slow") is retried only rarely —
+// every retry costs a hitch and two sluggish seconds.
+const FLOOR_TTL = 60;
+const CEILING_TTL = 300;
+// The longest a world swap waits for its shaders before going on anyway.
+const COMPILE_WAIT_MS = 8000;
 
 export class Stage {
   constructor(canvas, opts) {
@@ -52,7 +60,10 @@ export class Stage {
 
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     const cores = navigator.hardwareConcurrency || 4;
-    this.quality = coarse || cores <= 4 ? "low" : "high";
+    // opts.quality forces a tier (dev/scene.html) — it has to be known here,
+    // before the MSAA, the pixel budget and the ladder are chosen from it.
+    this.quality =
+      opts.quality === "low" || opts.quality === "high" ? opts.quality : coarse || cores <= 4 ? "low" : "high";
     // Pixel budget, not a fixed ratio: a 4K monitor and a phone should both
     // land around the same number of shaded pixels.
     this.maxPixels = this.quality === "high" ? 4.2e6 : 2.2e6;
@@ -90,7 +101,13 @@ export class Stage {
     };
     this.guardBloom();
     this.composer.addPass(this.bloom);
-    this.composer.addPass(new OutputPass());
+    // The last pass draws to the screen. Left at its default (swap after
+    // rendering), the composer would alternate between its two targets
+    // every frame and keep both alive — two full-screen MSAA buffers where
+    // one does the job.
+    const output = new OutputPass();
+    output.needsSwap = false;
+    this.composer.addPass(output);
 
     this.buildFade();
 
@@ -110,7 +127,11 @@ export class Stage {
     this.size = { w: 0, h: 0, pr: 1 };
     this.client = null; // the canvas's CSS size, read once a frame (measure)
     const top = this.quality === "high" ? 0 : 1;
-    this.perf = { acc: 0, frames: 0, step: top, top: top, ceiling: top, floor: LADDER.length - 1, fast: 0, probe: null, skip: 0 };
+    this.perf = {
+      acc: 0, frames: 0, step: top, top: top, ceiling: top, floor: LADDER.length - 1,
+      ceilingAge: 0, floorAge: 0, fast: 0, probe: null, skip: 0,
+      learnt: new Map(), // world id → the limits found for it
+    };
     this.resetPerfLimits();
     this.applyStep(top);
 
@@ -240,19 +261,44 @@ export class Stage {
   // programs on the render target too (tone mapping and colour space are
   // applied only when drawing to the screen), and everything here is drawn
   // into the composer's targets, so compile against one of those.
+  //
+  // The wait is three's compileAsync, minus its failure mode: that one polls
+  // every program until it reports ready, and throws from its timer (and
+  // never settles) once a material is disposed meanwhile — a quick world
+  // swap, a lost context. Here a program that is gone counts as done.
   precompile(scene, camera) {
     const r = this.renderer;
     const prev = r.getRenderTarget();
     r.setRenderTarget(this.composer.readBuffer);
-    let ready;
+    let materials;
     try {
-      ready = r.compileAsync ? r.compileAsync(scene, camera) : (r.compile(scene, camera), Promise.resolve());
+      materials = r.compile(scene, camera);
     } catch (e) {
-      ready = Promise.reject(e);
+      return Promise.reject(e);
     } finally {
       r.setRenderTarget(prev);
     }
-    return ready;
+    if (!(materials instanceof Set) || !r.extensions.has("KHR_parallel_shader_compile")) {
+      // Without parallel compiling, compile() has already finished the work.
+      return Promise.resolve();
+    }
+    const started = performance.now();
+    return new Promise((resolve) => {
+      const check = () => {
+        if (this.contextLost || performance.now() - started > COMPILE_WAIT_MS) {
+          resolve();
+          return;
+        }
+        materials.forEach((m) => {
+          const program = r.properties.get(m).currentProgram;
+          // false: still compiling; null: the context went away.
+          if (!program || program.isReady() !== false) materials.delete(m);
+        });
+        if (materials.size === 0) resolve();
+        else setTimeout(check, 10);
+      };
+      check();
+    });
   }
 
   // fn("lost") when the browser takes the GPU away, fn("restored") once the
@@ -309,6 +355,7 @@ export class Stage {
   }
 
   swapScene(def, keepOld) {
+    if (this.perf) this.rememberLimits();
     // After a lost context the old scene's GPU objects are already gone;
     // deleting them on the new context would only raise warnings.
     if (this.inst && !keepOld) {
@@ -330,8 +377,10 @@ export class Stage {
       this.def = prev;
       throw err;
     }
-    // A new world costs differently: the quality ladder may explore again.
+    // A new world costs differently: the quality ladder takes up what it
+    // learnt here before, or explores afresh.
     this.resetPerfLimits();
+    if (this.inst.setMsaa) this.inst.setMsaa(LADDER[this.perf.step].msaa);
     // Each world runs on its own clock, so time-driven shaders never see a
     // huge float32 value; a random start keeps every visit different.
     this.sceneTime = Math.random() * 600;
@@ -437,7 +486,10 @@ export class Stage {
     const h = Math.max(1, c.h || window.innerHeight);
     const dpr = window.devicePixelRatio || 1;
     let pr = Math.min(dpr, 2, Math.sqrt(this.maxPixels / (w * h)));
-    pr = Math.max(0.6, pr * this.prScale);
+    // The floor keeps the picture from going mushy, but scales with the
+    // budget: on a huge screen the budget alone may land below 0.6, and a
+    // fixed floor would make every step of the ladder render the same.
+    pr = Math.max(0.6 * Math.min(1, pr), pr * this.prScale);
     if (w === this.size.w && h === this.size.h && Math.abs(pr - this.size.pr) < 0.01) return;
     const prChanged = Math.abs(pr - this.size.pr) >= 0.01;
     this.size.w = w;
@@ -572,23 +624,53 @@ export class Stage {
       c.renderTarget1.dispose();
       c.renderTarget2.dispose();
     }
+    if (this.inst && this.inst.setMsaa) this.inst.setMsaa(s.msaa);
     this.resize();
   }
 
-  // The limits the ladder learnt hold for one world only: each costs
-  // differently, so a new one may explore the whole ladder again. The first
+  // The limits the ladder learns hold for one world: each costs differently.
+  // They are remembered per world, so the Journey coming back round to a
+  // world does not probe it all over again at every level. The first
   // verdict after a swap is skipped — loading, compiling and the page's own
   // start-up work (fonts, the other worlds arriving) are not the device.
   resetPerfLimits() {
     const p = this.perf;
     if (!p) return;
-    p.ceiling = p.top;
-    p.floor = LADDER.length - 1;
+    const known = this.def && p.learnt.get(this.def.id);
+    p.ceiling = known ? known.ceiling : p.top;
+    p.floor = known ? known.floor : LADDER.length - 1;
+    p.ceilingAge = known ? known.ceilingAge : 0;
+    p.floorAge = known ? known.floorAge : 0;
     p.probe = null;
     p.fast = 0;
     p.acc = 0;
     p.frames = 0;
     p.skip = 1;
+  }
+
+  rememberLimits() {
+    const p = this.perf;
+    if (!this.def) return;
+    p.learnt.set(this.def.id, {
+      ceiling: p.ceiling,
+      floor: p.floor,
+      ceilingAge: p.ceilingAge,
+      floorAge: p.floorAge,
+    });
+  }
+
+  // Learnt limits expire: what was true for a cold device is not for a hot
+  // one, and the other way round.
+  ageLimits(seconds) {
+    const p = this.perf;
+    if (p.ceiling !== p.top) {
+      p.ceilingAge += seconds;
+      if (p.ceilingAge >= CEILING_TTL) p.ceiling = p.top;
+    }
+    if (p.floor !== LADDER.length - 1) {
+      p.floorAge += seconds;
+      if (p.floorAge >= FLOOR_TTL) p.floor = LADDER.length - 1;
+    }
   }
 
   // Walk the quality ladder from the measured frame times. A step down is
@@ -609,9 +691,11 @@ export class Stage {
     p.frames++;
     if (p.acc < PERF_WINDOW) return;
     const avg = p.acc / p.frames;
+    const span = p.acc;
     p.acc = 0;
     p.frames = 0;
     if (document.hidden) return;
+    this.ageLimits(span);
     if (p.skip > 0) {
       p.skip--;
       return;
@@ -623,11 +707,15 @@ export class Stage {
       if (probe.down && avg > probe.avg * 0.88) {
         this.applyStep(probe.from);
         p.floor = probe.from;
+        p.floorAge = 0;
+        this.rememberLimits();
         return;
       }
       if (!probe.down && avg > SLOW_FRAME) {
         this.applyStep(probe.from);
         p.ceiling = probe.from;
+        p.ceilingAge = 0;
+        this.rememberLimits();
         return;
       }
     }

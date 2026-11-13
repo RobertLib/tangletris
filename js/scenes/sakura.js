@@ -1275,6 +1275,15 @@ export default {
       resize(w, h) {
         layout(w, h);
       },
+      // The stage's quality ladder: when the main picture gives up MSAA to
+      // save time, so does the reflection.
+      setMsaa(on) {
+        const rt = water.getRenderTarget();
+        const samples = on && hi ? 4 : 0;
+        if (rt.samples === samples) return;
+        rt.samples = samples;
+        rt.dispose();
+      },
       update(t, dt, input) {
         // Never trust the inputs blindly: a glitchy first frame (negative or
         // huge dt) or a runaway pulse must not blow up the bloom.

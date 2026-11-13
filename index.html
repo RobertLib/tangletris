@@ -95,7 +95,7 @@
           type="button"
           class="icon-btn"
           id="sceneBtn"
-          aria-label="Change world"
+          aria-label="Journey — change world"
           title="Change world (T)"
         >
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -112,7 +112,7 @@
           class="icon-btn"
           id="motionBtn"
           aria-pressed="true"
-          aria-label="Toggle board motion"
+          aria-label="Motion — board tilt and movement"
           title="Board tilt and motion (V)"
         >
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -142,7 +142,7 @@
           class="icon-btn"
           id="sfxBtn"
           aria-pressed="true"
-          aria-label="Toggle sound effects"
+          aria-label="SFX — sound effects"
           title="Sound effects (M)"
         >
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -162,7 +162,7 @@
           class="icon-btn"
           id="musicBtn"
           aria-pressed="true"
-          aria-label="Toggle music"
+          aria-label="Music"
           title="Music (N)"
         >
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -184,7 +184,7 @@
           hreflang="cs"
           lang="cs"
           title="Hrát česky"
-          aria-label="Česká verze"
+          aria-label="CZ — česká verze"
           >CZ</a
         >
       </nav>
@@ -194,7 +194,7 @@
       <aside class="rail rail-left">
         <section class="panel panel-hold">
           <h2 class="panel-title">Hold <kbd>C</kbd></h2>
-          <div class="slot slot-hold" id="holdSlot" aria-label="Held piece"></div>
+          <div class="slot slot-hold" id="holdSlot" role="img" aria-label="Held piece: none"></div>
         </section>
 
         <section class="panel panel-score">
@@ -228,7 +228,7 @@
       <aside class="rail rail-right">
         <section class="panel panel-next">
           <h2 class="panel-title">Next</h2>
-          <div class="slots" id="nextSlots" aria-label="Upcoming pieces">
+          <div class="slots" id="nextSlots" role="img" aria-label="Next pieces: none">
             <div class="slot slot-next"></div>
             <div class="slot slot-next"></div>
             <div class="slot slot-next"></div>
@@ -254,7 +254,7 @@
     <!-- Pieces collection and achievements open here. -->
     <dialog class="sheet" id="sheet" aria-label="Collection"></dialog>
 
-    <div class="touchpad" id="touchpad" aria-label="Touch controls">
+    <div class="touchpad" id="touchpad" role="group" aria-label="Touch controls">
       <button type="button" class="tbtn" data-touch="hold" aria-label="Hold">
         ⇄
       </button>
@@ -410,7 +410,7 @@
           </dd>
           <dt>Is this Tetris?</dt>
           <dd>
-            It's an independent Tetris-style game with its own twist: two dozen
+            It's an independent Tetris-style game with its own twist: seventeen
             odd shapes, a 3D board and six worlds with live-generated music.
           </dd>
           <dt>Where is my score saved?</dt>
@@ -468,7 +468,7 @@
         "genre": ["Puzzle", "Arcade"],
         "playMode": "SinglePlayer",
         "gamePlatform": "Web browser",
-        "applicationCategory": "Game",
+        "applicationCategory": "GameApplication",
         "operatingSystem": "Any",
         "isAccessibleForFree": true,
         "sameAs": ["https://github.com/RobertLib/tangletris"],

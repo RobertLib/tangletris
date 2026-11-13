@@ -187,7 +187,22 @@ function makePiece(id) {
     cells: def.cells.map((row) => row.slice()),
     x: Math.floor((COLS - def.cells[0].length) / 2),
     y: 0,
+    rot: 0, // quarter turns clockwise from the spawn orientation
   };
+}
+
+// Where a clockwise quarter turn from orientation `rot` moves the corner of
+// a w×h box, so that the piece turns about its middle rather than its top
+// left corner (a line would otherwise swing round its end). When the sides
+// differ by an odd number the middle falls between cells: the half is
+// rounded one way on even turns and the other way on odd ones, so a piece
+// turned all the way round lands exactly where it started. For the 3×2
+// classics this comes to no shift at all.
+function turnOffset(w, h, rot) {
+  const even = rot % 2 === 0;
+  const kx = (w - h) / 2;
+  const ky = (h - w) / 2;
+  return { x: even ? Math.floor(kx) : Math.ceil(kx), y: even ? Math.ceil(ky) : Math.floor(ky) };
 }
 
 /* --------------------------------------------------------------- geometry */
@@ -306,13 +321,24 @@ export function rotate(cw) {
   const p = state.piece;
   if (!p) return;
   const rotated = cw ? rotateCW(p.cells) : rotateCCW(p.cells);
+  const w = p.cells[0].length;
+  const h = p.cells.length;
+  const rot = p.rot || 0;
+  let off;
+  if (cw) off = turnOffset(w, h, rot);
+  else {
+    // Undoes the clockwise turn that led to this orientation.
+    const back = turnOffset(h, w, (rot + 3) % 4);
+    off = { x: -back.x, y: -back.y };
+  }
   for (let i = 0; i < KICKS.length; i++) {
-    const nx = p.x + KICKS[i][0];
-    const ny = p.y + KICKS[i][1];
+    const nx = p.x + off.x + KICKS[i][0];
+    const ny = p.y + off.y + KICKS[i][1];
     if (!collides(p, nx, ny, rotated)) {
       p.cells = rotated;
       p.x = nx;
       p.y = ny;
+      p.rot = (rot + (cw ? 1 : 3)) % 4;
       lockReset();
       emit("rotate", { cw: cw, kicked: i > 0 });
       return;
@@ -360,6 +386,12 @@ export function hold() {
     const swap = state.hold;
     state.hold = current;
     placeSpawn(swap);
+  }
+  // The piece that came out of the hold had no room: the run is over, and
+  // the hold chime would ring after the game-over sound.
+  if (state.mode !== "playing") {
+    emit("queue");
+    return;
   }
   state.holdUsed = true;
   emit("hold");
@@ -707,11 +739,18 @@ export function update(dt, now) {
       } else {
         // Airborne: the lock delay pauses, and is only refunded once the
         // piece sinks below its lowest row so far — not by a kick upwards.
+        // The leftover time carries over, so gravity runs at the same speed
+        // at 30, 60 or 144 frames a second.
         state.grounded = false;
         state.dropTimer += dt;
-        if (state.dropTimer >= dropInterval()) {
-          state.dropTimer = 0;
-          if (tryMove(0, 1)) emit("fall");
+        const interval = dropInterval();
+        while (state.dropTimer >= interval) {
+          state.dropTimer -= interval;
+          if (!tryMove(0, 1)) {
+            state.dropTimer = 0;
+            break;
+          }
+          emit("fall");
         }
       }
     }

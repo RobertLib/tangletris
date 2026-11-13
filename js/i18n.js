@@ -54,6 +54,11 @@ const EN = {
   "load.text": "The game could not load its worlds. Check your connection and reload.",
 
   "scene.journey": "Journey",
+  "scene.change": "change world",
+
+  "a11y.hold": "Held piece: {p}",
+  "a11y.next": "Next pieces: {p}",
+  "a11y.none": "none",
 
   "clear.1": "Single",
   "clear.2": "Double",
@@ -114,7 +119,6 @@ const EN = {
   "share.sprint": "Tangletris Sprint: 40 lines in {time}. Same pieces for you — can you do it faster?",
   "share.daily": "Tangletris Daily #{n} 🧩\n{score} · {lines} · {p} % tangled",
   "share.streak": "\n🔥 {n}-day streak",
-  "share.zen": "Tangletris Zen: {lines} of calm. 🧘",
   "share.cardLines": "{lines} · level {level}",
   "share.cardBeat": "Can you beat it?",
 
@@ -187,6 +191,11 @@ const CS = {
   "load.text": "Hře se nepodařilo načíst světy. Zkontroluj připojení a načti stránku znovu.",
 
   "scene.journey": "Cesta",
+  "scene.change": "změnit svět",
+
+  "a11y.hold": "Odložená kostka: {p}",
+  "a11y.next": "Následující kostky: {p}",
+  "a11y.none": "žádná",
 
   "clear.1": "Řada",
   "clear.2": "Dvě řady",
@@ -247,7 +256,6 @@ const CS = {
   "share.sprint": "Tangletris Sprint: 40 řad za {time}. Máš stejné kostky — dáš to rychleji?",
   "share.daily": "Tangletris Denní #{n} 🧩\n{score} · {lines} · zamotanost {p} %",
   "share.streak": "\n🔥 série {days}",
-  "share.zen": "Tangletris Zen: {lines} v klidu. 🧘",
   "share.cardLines": "{lines} · level {level}",
   "share.cardBeat": "Překonáš to?",
 

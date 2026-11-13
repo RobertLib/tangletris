@@ -3,7 +3,7 @@
    Builds the content pages around the game — how to play, the pieces, the
    worlds and the Daily Tangle, in English and Czech — and sitemap.xml.
 
-     node dev/build-pages.mjs        (from the repo root, Node 18+)
+     node dev/build-pages.mjs        (from the repo root, Node 22+: it imports the game's own modules)
 
    The output is checked in, so the site stays plain static files with no
    build step for visitors. Run this again after changing the copy below or
@@ -283,7 +283,7 @@ const UI = {
     howto: { en: "How to play", cs: "Jak hrát" },
     pieces: { en: "Pieces", cs: "Tvary" },
     worlds: { en: "Worlds", cs: "Světy" },
-    daily: { en: "Daily", cs: "Denní výzva" },
+    daily: { en: "Daily", cs: "Denní Tangle" },
   },
   play: { en: "Play Tangletris", cs: "Hrát Tangletris" },
   author: { en: "Made by " + AUTHOR, cs: "Autor: " + AUTHOR },
@@ -402,6 +402,7 @@ function layout(c, page) {
 
     <link rel="icon" href="${c.root}icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="${c.root}icons/apple-touch-icon.png">
+    <link rel="manifest" href="${c.root}${lang === "cs" ? "cs/" : ""}manifest.webmanifest">
     ${preloads}
     <link rel="stylesheet" href="${c.root}pages.css">
     ${ld.map(jsonLd).join("\n    ")}
@@ -780,11 +781,11 @@ function piecesPage(lang) {
   return layout(c, {
     title: {
       en: "All 24 Tangletris Pieces: Hearts, Rockets, Stars & Tips",
-      cs: "Všech 24 tvarů Tangletris: srdce, raketa, hvězda i kostka",
+      cs: "Všech 24 tvarů Tangletris: srdce, raketa, hvězda i hrací kostka",
     },
     description: {
       en: "A Tetris-style game with weird shapes: 7 classic tetrominoes plus 17 odd pieces — heart, star, rocket, dice, pentomino-style blocks — each with a placement tip.",
-      cs: "Hra ve stylu Tetrisu s divnými tvary: 7 klasických kostek a 17 podivností – srdce, hvězda, raketa, kostka i pentomina. U každého tvaru rada, kam s ním.",
+      cs: "Hra ve stylu Tetrisu s divnými tvary: 7 klasických kostek a 17 podivností – srdce, hvězda, raketa, hrací kostka i pentomina. U každého tvaru rada, kam s ním.",
     },
     h1: { en: "24 pieces, 17 of them weird", cs: "24 tvarů, 17 z nich divných" },
     hero: `<p class="lead">${c.t({
@@ -801,7 +802,7 @@ function piecesPage(lang) {
           <div class="panel">
             <p>${c.t({
               en: `It plays like the falling-block game you know until it doesn’t — think of it as a crazy Tetris. The first seven pieces are the classic tetrominoes, four cells each, and they carry the game. The other ${ODD_COUNT} are the tangle: shapes from the one-cell Dot to the eight-cell Rocket, including real pentominoes (the Plus, Cup, Zigzag, Giraffe and Puzzle) and a few no tetromino set would ever allow, like the Dice, whose cells touch only at the corners.`,
-              cs: `Hraje se jako padající kostky, které znáš – dokud se to nezamotá. Prvních sedm kostek jsou klasická tetromina po čtyřech polích a nesou celou hru. Zbylých ${ODD_COUNT} tvoří spleť: tvary od jednopolíčkové Tečky po osmipolíčkovou Raketu, včetně skutečných pentomin (Plus, Pohár, Cikcak, Žirafa a Dílek) a několika kousků, které by žádná klasická sada nepřipustila – třeba Kostky, jejíž pole se dotýkají jen rohy.`,
+              cs: `Hraje se jako padající kostky, které znáš – dokud se to nezamotá. Prvních sedm kostek jsou klasická tetromina po čtyřech polích a nesou celou hru. Zbylých ${ODD_COUNT} tvoří spleť: tvary od jednopolíčkové Tečky po osmipolíčkovou Raketu, včetně skutečných pentomin (Plus, Pohár, Cikcak, Žirafa a Dílek) a několika kousků, které by žádná klasická sada nepřipustila – třeba Hrací kostky, jejíž pole se dotýkají jen rohy.`,
             })}</p>
             <p>${c.t({
               en: "Most odd shapes bury a hole under themselves however carefully you place them, so a board full of them would choke within minutes. That’s why they arrive gradually, and why the hold slot matters far more here than in a classic game.",
@@ -1194,8 +1195,8 @@ const FAQ = [
   {
     q: { en: "Can I install it and play offline?", cs: "Jde hru nainstalovat a hrát offline?" },
     a: {
-      en: "Yes. Choose Install in Chrome or Edge, or Share → Add to Home Screen in Safari. Installed, Tangletris opens like an app and keeps working without a connection.",
-      cs: "Ano. V Chromu nebo Edgi zvol Instalovat, v Safari Sdílet → Přidat na plochu. Nainstalovaný Tangletris se otevírá jako aplikace a funguje i bez připojení.",
+      en: "Yes. Open the game, then choose Install in Chrome or Edge, or Share → Add to Home Screen in Safari. Installed, Tangletris opens like an app and keeps working without a connection.",
+      cs: "Ano. Otevři hru a v Chromu nebo Edgi zvol Instalovat, v Safari Sdílet → Přidat na plochu. Nainstalovaný Tangletris se otevírá jako aplikace a funguje i bez připojení.",
     },
   },
   {
@@ -1209,7 +1210,7 @@ const FAQ = [
     q: { en: "What is the Daily Tangle?", cs: "Co je Denní Tangle?" },
     a: {
       en: `A three-minute game with the same pieces for everyone, refreshed at local midnight. Each day has its own tangle level, a streak counts the days you play in a row, and you can share your result. See the <a href="{page:daily}">Daily Tangle page</a>.`,
-      cs: `Tříminutová hra se stejnými kostkami pro všechny, která se obnovuje o půlnoci místního času. Každý den má vlastní zamotanost, série počítá dny, kdy hraješ v kuse, a výsledek můžeš sdílet. Víc na stránce <a href="{page:daily}">Denní výzva</a>.`,
+      cs: `Tříminutová hra se stejnými kostkami pro všechny, která se obnovuje o půlnoci místního času. Každý den má vlastní zamotanost, série počítá dny, kdy hraješ v kuse, a výsledek můžeš sdílet. Víc na stránce <a href="{page:daily}">Denní Tangle</a>.`,
     },
   },
   {
@@ -1223,7 +1224,7 @@ const FAQ = [
     q: { en: "Where is my score saved?", cs: "Kde se ukládá moje skóre?" },
     a: {
       en: "In your browser’s local storage, on this device only. There are no accounts and no servers: your bests, Daily streak, piece collection and achievements stay with you — and clearing the site’s data resets them.",
-      cs: "V místním úložišti prohlížeče, jen na tomhle zařízení. Žádné účty ani servery: rekordy, série Denní výzvy, sbírka tvarů i úspěchy zůstávají u tebe – a smazáním dat webu zmizí.",
+      cs: "V místním úložišti prohlížeče, jen na tomhle zařízení. Žádné účty ani servery: rekordy, série v Denním Tanglu, sbírka tvarů i úspěchy zůstávají u tebe – a smazáním dat webu zmizí.",
     },
   },
   {
@@ -1522,7 +1523,7 @@ function howtoPage(lang) {
               <h3>${c.t({ en: "Collection and achievements", cs: "Sbírka a úspěchy" })}</h3>
               <p>${c.t({
                 en: "The game tracks which of the 24 pieces you’ve discovered and how often you’ve placed each one. Achievements mark the moments worth remembering: your first Tangle, a Tangle with an odd shape, a line cleared by the Rocket, an empty board, reaching the Inferno, a finished Sprint, a three-day Daily streak, all 24 pieces found — and more.",
-                cs: "Hra si vede přehled, které z 24 tvarů máš objevené a kolikrát byl který položen. Úspěchy oslavují chvíle, které stojí za zapamatování: první Tangle, Tangle divným tvarem, řadu smazanou Raketou, prázdnou desku, cestu až do Inferna, dokončený Sprint, tři dny Denní výzvy po sobě, všech 24 objevených tvarů – a další.",
+                cs: "Hra si vede přehled, které z 24 tvarů máš objevené a kolikrát byl který položen. Úspěchy oslavují chvíle, které stojí za zapamatování: první Tangle, Tangle divným tvarem, řadu smazanou Raketou, prázdnou desku, cestu až do Inferna, dokončený Sprint, tři dny Denního Tanglu po sobě, všech 24 objevených tvarů – a další.",
               })}</p>
             </div>
           </div>
@@ -1702,7 +1703,7 @@ function dailyPage(lang) {
     },
     description: {
       en: "A daily Tetris-style challenge: one three-minute game a day, the same pieces for everyone, a streak to keep and a result to share. Resets at local midnight.",
-      cs: "Denní výzva ve stylu Tetrisu: jedna tříminutová hra denně, pro všechny stejné kostky, série dní v řadě a výsledek ke sdílení. Nová výzva každou půlnoc.",
+      cs: "Denní Tangle ve stylu Tetrisu: jedna tříminutová hra denně, pro všechny stejné kostky, série dní v řadě a výsledek ke sdílení. Nová výzva každou půlnoc.",
     },
     h1: { en: "The Daily Tangle", cs: "Denní Tangle" },
     hero: `<p class="lead">${c.t({

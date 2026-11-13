@@ -524,9 +524,10 @@ export class Board {
       const w = p.cells[0].length;
       const h = p.cells.length;
       a.x = p.x + w / 2 - COLS / 2;
-      a.y = ROWS / 2 - (p.y + h / 2) + 1.2;
+      // Drops in from a little above, growing — as much as Motion allows.
+      a.y = ROWS / 2 - (p.y + h / 2) + 1.2 * this.motion;
       a.rot = 0;
-      a.scale = 0.55;
+      a.scale = 1 - 0.45 * this.motion;
       a.flash = 0.3;
     });
     game.on("rotate", (r) => {
@@ -599,10 +600,13 @@ export class Board {
         }
       }
       if (top < 0 || d.dist < 2) continue;
-      const tr = this.trails[i++];
-      const y0 = d.from + top;
+      // A piece that started above the field (a tall one on a high stack)
+      // trails from the top row, not from the frame above the well.
+      const y0 = Math.max(0, d.from + top);
       const y1 = p.y + bottom;
       const len = y1 - y0 + 1;
+      if (len < 2) continue;
+      const tr = this.trails[i++];
       tr.mesh.visible = true;
       tr.mesh.scale.set(0.9, len, 1);
       tr.mesh.position.set(cellX(p.x + x), cellY(y0) - (len - 1) / 2, -0.2);
@@ -718,22 +722,29 @@ export class Board {
 
   /* ------------------------------------------------------------ particles */
 
+  // How hard debris flies — towards the camera, too. With Motion off it
+  // still shows, but drifts instead of exploding.
+  debrisForce() {
+    return 0.25 + 0.75 * this.motion;
+  }
+
   spawnShards(x, y, color, count) {
+    const f = this.debrisForce();
     for (let i = 0; i < count; i++) {
       if (this.shards.length >= MAX_DEBRIS) this.shards.shift();
       const a = Math.random() * Math.PI * 2;
-      const sp = 2 + Math.random() * 6;
+      const sp = (2 + Math.random() * 6) * f;
       this.shards.push({
         x: x + (Math.random() - 0.5) * 0.6,
         y: y + (Math.random() - 0.5) * 0.6,
         z: 0.2,
         vx: Math.cos(a) * sp,
-        vy: Math.sin(a) * sp + 4,
-        vz: 3 + Math.random() * 9,
+        vy: Math.sin(a) * sp + 4 * f,
+        vz: (3 + Math.random() * 9) * f,
         rx: Math.random() * 6,
         ry: Math.random() * 6,
-        wx: (Math.random() - 0.5) * 16,
-        wy: (Math.random() - 0.5) * 16,
+        wx: (Math.random() - 0.5) * 16 * f,
+        wy: (Math.random() - 0.5) * 16 * f,
         s: 0.18 + Math.random() * 0.26,
         life: 0.8 + Math.random() * 0.6,
         max: 1.4,
@@ -766,6 +777,7 @@ export class Board {
     // Turn every settled block into a free-falling body.
     this.crumbled = true;
     const b = game.state.board;
+    const f = this.debrisForce();
     for (let y = 0; y < ROWS; y++) {
       for (let x = 0; x < COLS; x++) {
         if (b[y][x] === null) continue;
@@ -774,13 +786,13 @@ export class Board {
           x: cellX(x),
           y: cellY(y),
           z: 0,
-          vx: fromCenter * (1.5 + Math.random() * 3),
-          vy: 2 + Math.random() * 5 + (ROWS - y) * 0.12,
-          vz: 2 + Math.random() * 10,
+          vx: fromCenter * (1.5 + Math.random() * 3) * f,
+          vy: (2 + Math.random() * 5 + (ROWS - y) * 0.12) * f,
+          vz: (2 + Math.random() * 10) * f,
           rx: 0,
           ry: 0,
-          wx: (Math.random() - 0.5) * 8,
-          wy: (Math.random() - 0.5) * 8,
+          wx: (Math.random() - 0.5) * 8 * f,
+          wy: (Math.random() - 0.5) * 8 * f,
           delay: (ROWS - y) * 0.012 + Math.random() * 0.08,
         });
       }

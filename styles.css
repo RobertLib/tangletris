@@ -127,7 +127,9 @@ body {
   z-index: 2;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 22px 20px 12px;
+  /* The top inset: an installed iPhone app draws the page under the status
+     bar (viewport-fit=cover, black-translucent). */
+  padding: calc(22px + env(safe-area-inset-top)) 20px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1266,7 +1268,7 @@ body.touch .touchpad {
   }
 
   .topbar {
-    padding: 12px 12px 6px;
+    padding: calc(12px + env(safe-area-inset-top)) 12px 6px;
   }
 
   .info {

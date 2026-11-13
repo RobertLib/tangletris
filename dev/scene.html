@@ -90,8 +90,7 @@
       const intensity = parseFloat(q.get("intensity") || "0");
 
       const mod = await import("../js/scenes/" + name + ".js");
-      const stage = new Stage(document.getElementById("gl"), {});
-      if (q.get("quality")) stage.quality = q.get("quality");
+      const stage = new Stage(document.getElementById("gl"), { quality: q.get("quality") });
       // Headless renderers are slow; keep the quality fixed for screenshots.
       if (!q.get("adapt")) stage.trackPerformance = () => {};
       stage.setScene(mod.default, true);

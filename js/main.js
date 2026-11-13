@@ -48,6 +48,7 @@ const el = {
   touchpad: $("touchpad"),
   levelTrack: document.querySelector(".level-track"),
   holdSlot: $("holdSlot"),
+  nextSlotsBox: $("nextSlots"),
   nextSlots: Array.from(document.querySelectorAll("#nextSlots .slot")),
   score: $("score"),
   best: $("best"),
@@ -373,7 +374,11 @@ function cycleScene() {
 }
 
 function updateSceneLabel() {
-  el.sceneLabel.textContent = prefs.scene === "journey" ? t("scene.journey") : SCENES[prefs.scene].name;
+  const label = prefs.scene === "journey" ? t("scene.journey") : SCENES[prefs.scene].name;
+  el.sceneLabel.textContent = label;
+  // The spoken name starts with the visible one, so "click Journey" works
+  // with voice control too.
+  el.sceneBtn.setAttribute("aria-label", label + " — " + t("scene.change"));
 }
 
 /* ---------------------------------------------------------------- toasts */
@@ -485,16 +490,27 @@ function updateClock() {
   }
 }
 
+// While paused the queue and the hold are hidden, as the board is behind
+// the menu: a pause is a break, not time to plan the next pieces on a clock
+// that has stopped (Sprint, the Daily Tangle).
 function updatePreviews() {
-  const slots = [{ el: el.holdSlot, id: state.hold, dim: state.holdUsed ? 1 : 0 }];
+  const hide = state.mode === "paused";
+  const hold = hide ? null : state.hold;
+  const queue = hide ? [] : state.queue;
+  const slots = [{ el: el.holdSlot, id: hold, dim: state.holdUsed ? 1 : 0 }];
   el.nextSlots.forEach((node, i) => {
     node.style.display = i < nextCount ? "" : "none";
-    slots.push({ el: node, id: state.queue[i], dim: i === 0 ? 0 : i === 1 ? 0.25 : 0.5 });
+    slots.push({ el: node, id: queue[i], dim: i === 0 ? 0 : i === 1 ? 0.25 : 0.5 });
   });
   previews.setSlots(slots);
-  const upcoming = state.queue[0];
+  const upcoming = queue[0];
   el.pieceName.textContent =
     upcoming === undefined ? "—" : PIECES[upcoming].emoji + "  " + pieceName(PIECES[upcoming]);
+  // The previews are drawn on a canvas; say in words what they show.
+  const name = (id) => (id === null || id === undefined ? t("a11y.none") : pieceName(PIECES[id]));
+  el.holdSlot.setAttribute("aria-label", t("a11y.hold", { p: name(hold) }));
+  const next = queue.slice(0, nextCount).map(name);
+  el.nextSlotsBox.setAttribute("aria-label", t("a11y.next", { p: next.length ? next.join(", ") : t("a11y.none") }));
 }
 
 function popup(text, frac, color, size, big) {
@@ -718,7 +734,8 @@ function showGameOver() {
 /* ---------------------------------------------------------- the sheet */
 
 // Pieces and achievements open in a modal sheet over everything.
-function openSheet(html) {
+function openSheet(html, label) {
+  el.sheet.setAttribute("aria-label", label);
   el.sheet.innerHTML = '<div class="sheet-body">' + html + "</div>";
   if (el.sheet.showModal) {
     if (!el.sheet.open) el.sheet.showModal();
@@ -776,7 +793,7 @@ function showPieces() {
     html += '<h3 class="sheet-group">' + t("col." + r) + '</h3><ul class="piece-grid">' + items + "</ul>";
   }
   html += '<p class="sheet-more"><a href="' + t("col.link") + '">' + t("col.more") + " →</a></p>";
-  openSheet(html);
+  openSheet(html, t("col.title"));
 }
 
 function showAwards() {
@@ -792,7 +809,8 @@ function showAwards() {
   }
   openSheet(
     sheetHead(t("aw.title"), t("aw.count", { n: progress.awardCount(pr), total: progress.ACHIEVEMENTS.length })) +
-      '<ul class="award-list">' + items + "</ul>"
+      '<ul class="award-list">' + items + "</ul>",
+    t("aw.title")
   );
 }
 
@@ -1095,10 +1113,12 @@ game.on("over", showGameOver);
 game.on("pause", () => {
   audio.muffle(true);
   showPause();
+  updatePreviews();
 });
 game.on("resume", () => {
   audio.muffle(false);
   hideOverlay();
+  updatePreviews();
 });
 
 /* ----------------------------------------------------------------- input */
@@ -1162,9 +1182,11 @@ document.addEventListener("keydown", (e) => {
   // No piece during a line clear is fine: game.js buffers what is pressed.
   if (state.mode !== "playing") return;
 
-  // Rotate left goes by position, not label: always the key beside X
-  // (Z on QWERTY, Y on QWERTZ, W on AZERTY).
-  if (e.code === "KeyZ") {
+  // Rotate left is the key beside X, whatever it prints (Z on QWERTY, Y on
+  // QWERTZ, W on AZERTY) — and also whichever key says Z or Y on it: the
+  // labels on the page can only follow the layout in Chromium, and a Czech
+  // or German player reading "Z" presses the Z on their keyboard.
+  if (e.code === "KeyZ" || k === "z" || k === "y") {
     game.rotate(false);
     return;
   }
@@ -1200,8 +1222,13 @@ document.addEventListener("keyup", (e) => {
   else if (e.key === "ArrowDown") game.setSoftDrop(false);
 });
 
-// Keys held while focus leaves the window never get their keyup.
-window.addEventListener("blur", () => game.releaseAll());
+// Keys held while focus leaves the window never get their keyup. And a
+// player who switches to another window is not watching the board: pause,
+// as for a hidden tab, rather than let the stack fill up behind their back.
+window.addEventListener("blur", () => {
+  game.releaseAll();
+  if (state.mode === "playing") game.togglePause();
+});
 
 // Audio may only start from a user activation — a key, a click or the end
 // of a touch (a touchstart or a touch pointerdown does not count) — so each
@@ -1316,7 +1343,11 @@ document.querySelectorAll("[data-touch]").forEach((btn) => {
     // the card starts a game from there. Buttons handle themselves (click).
     if (e.target.closest && e.target.closest("[data-action], .overlay-card")) return;
     if (!booted()) return;
+    // A drag (scrolling the menu, say) is not a tap.
+    const end = e.changedTouches && e.changedTouches[0];
+    const dragged = !!end && (Math.abs(end.clientX - sx) > 12 || Math.abs(end.clientY - sy) > 12);
     if (state.mode === "title" || state.mode === "over") {
+      if (dragged) return;
       if (state.mode === "title" || game.canRestart()) startGame();
       return;
     }
@@ -1338,13 +1369,29 @@ function worldsCalm() {
   return reducedMotion || !prefs.motion;
 }
 
+// The swaying Hold / Next pieces are pure decoration: still under reduced
+// motion, not merely calmer.
+function applyMotion() {
+  board.motion = motionAmount();
+  previews.motion = prefs.motion && !reducedMotion ? 1 : 0;
+  stage.setReducedMotion(worldsCalm());
+}
+
 function toggleMotion() {
   prefs.motion = !prefs.motion;
   el.motionBtn.setAttribute("aria-pressed", String(prefs.motion));
-  board.motion = motionAmount();
-  stage.setReducedMotion(worldsCalm());
+  applyMotion();
   savePrefs();
 }
+
+// The system setting can change while the game is open.
+const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+function onReducedMotion() {
+  reducedMotion = reducedMotionQuery.matches;
+  if (booted()) applyMotion();
+}
+if (reducedMotionQuery.addEventListener) reducedMotionQuery.addEventListener("change", onReducedMotion);
+else if (reducedMotionQuery.addListener) reducedMotionQuery.addListener(onReducedMotion);
 
 function toggleSfx() {
   prefs.sfx = !prefs.sfx;
@@ -1375,18 +1422,24 @@ el.sfxBtn.addEventListener("click", () => {
 });
 el.musicBtn.addEventListener("click", toggleMusic);
 
+// Bank the run so far (see recordRun — safe to repeat) and the collection.
+function bankProgress() {
+  if (state.mode === "playing" || state.mode === "paused") recordRun(false);
+  savePrefs();
+}
+
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && state.mode === "playing") game.togglePause();
   // Silence a background tab completely; the song resumes where it was.
   if (document.hidden) audio.suspend();
   else audio.resume();
+  // A phone may kill a background tab without another word — pagehide never
+  // comes — so hiding is the last reliable moment to save.
+  if (document.hidden) bankProgress();
 });
 
 // Closing or leaving the tab mid-game still banks the run.
-window.addEventListener("pagehide", () => {
-  if (state.mode === "playing" || state.mode === "paused") recordRun(false);
-  else savePrefs();
-});
+window.addEventListener("pagehide", bankProgress);
 
 /* ---------------------------------------------------------- gpu resets */
 
@@ -1572,13 +1625,15 @@ function webglFailed(err) {
 // it runs (the game itself), and again when the other worlds are in.
 function registerWorker(worldsLoaded) {
   if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
-  const handOver = (reg) => {
+  // `final`: everything is loaded — the worker also refreshes the other
+  // language's page and drops what this version no longer uses.
+  const handOver = (reg, final) => {
     const urls = performance
       .getEntriesByType("resource")
       .map((e) => e.name)
       .filter((u) => u.indexOf(location.origin) === 0 || u.indexOf("https://cdn.jsdelivr.net/") === 0);
     urls.push(location.origin + location.pathname);
-    if (reg.active) reg.active.postMessage({ type: "cache", urls: urls });
+    if (reg.active) reg.active.postMessage({ type: "cache", urls: urls, final: !!final });
   };
   navigator.serviceWorker
     .register(new URL("../sw.js", import.meta.url))
@@ -1587,7 +1642,7 @@ function registerWorker(worldsLoaded) {
       handOver(reg);
       // The worker skips what it already has, so the second list only
       // fetches the worlds (and anything else loaded since).
-      worldsLoaded.then(() => setTimeout(() => handOver(reg), 1000));
+      worldsLoaded.then(() => setTimeout(() => handOver(reg, true), 1000));
     })
     .catch(() => {});
 }
@@ -1613,7 +1668,7 @@ async function firstScene() {
 }
 
 async function boot() {
-  reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  reducedMotion = reducedMotionQuery.matches;
   loadPrefs();
   selectedMode = prefs.mode;
   readLink();
@@ -1637,6 +1692,7 @@ async function boot() {
   }
   audio.quality = stage.quality;
   board.motion = motionAmount();
+  previews.motion = prefs.motion && !reducedMotion ? 1 : 0;
   stage.onSceneChange((def) => applyPalette(def, false));
   stage.onContext((status) => {
     if (status === "restored") {
