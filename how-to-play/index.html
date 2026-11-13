@@ -30,6 +30,7 @@
     <meta name="twitter:image" content="https://robertlib.github.io/tangletris/og-image.jpg">
 
     <link rel="icon" href="../icon.svg" type="image/svg+xml">
+    <link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
     <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.webmanifest">
     <link rel="preload" href="../fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -88,7 +89,7 @@
 
         <section class="section" aria-labelledby="controls">
           <h2 id="controls">Controls</h2>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Keyboard controls">
             <table>
               <caption>Keyboard</caption>
               <thead>
@@ -162,7 +163,7 @@
 
         <section class="section" aria-labelledby="scoring">
           <h2 id="scoring">Scoring</h2>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Scoring">
             <table>
               <thead>
                 <tr><th scope="col">What you do</th><th scope="col" class="num">Points</th></tr>
@@ -187,7 +188,7 @@
         <section class="section" aria-labelledby="levels">
           <h2 id="levels">Levels and speed</h2>
           <p class="section-intro">You go up a level every 10 lines. Each level cuts the time a piece takes to fall one row by 14.5% — from 800 ms at level 1 down to the 70 ms floor at level 17 — moves you to the next world in Marathon and pulls more <a href="../pieces/">odd shapes</a> into the bag.</p>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Speed and odd shapes by level">
             <table>
               <caption>Marathon</caption>
               <thead>
@@ -306,7 +307,7 @@
       <div class="wrap">
         <nav class="footer-nav" aria-label="Site">
           <ul>
-          <li><a class="" href="../">Play</a></li>
+          <li><a href="../">Play</a></li>
           <li><a href="./" aria-current="page">How to play</a></li>
           <li><a href="../pieces/">Pieces</a></li>
           <li><a href="../worlds/">Worlds</a></li>

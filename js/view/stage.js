@@ -34,9 +34,23 @@ const FAST_FRAME = 1 / 55;
 // How long a learnt limit holds. A floor ("going lower did not help") is
 // let go soon, so a device that heats up and slows down can still step
 // down; a ceiling ("going higher was too slow") is retried only rarely —
-// every retry costs a hitch and two sluggish seconds.
+// every retry costs a hitch and two sluggish seconds. A floor found again
+// and again (a browser capped at 30 fps never gets faster) is held twice
+// as long each time.
 const FLOOR_TTL = 60;
+const FLOOR_TTL_MAX = 960;
 const CEILING_TTL = 300;
+// At a frame-rate cap, frame times barely move between verdicts; this many
+// steady verdicts in a row and the ladder tries one step back up.
+const STEADY_VERDICTS = 3;
+
+// The middle frame time of a window. One hitch (a GC, a toast, the share
+// card) moves an average a lot and the median not at all.
+function median(values) {
+  const a = values.slice().sort((x, y) => x - y);
+  const m = a.length >> 1;
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
 // The longest a world swap waits for its shaders before going on anyway.
 const COMPILE_WAIT_MS = 8000;
 
@@ -46,10 +60,13 @@ export class Stage {
     this.canvas = canvas;
     this.reducedMotion = !!opts.reducedMotion;
 
+    // No depth buffer on the canvas: everything is drawn into the composer's
+    // targets, and the canvas only ever gets the final full-screen quad.
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: false,
       alpha: false,
+      depth: false,
       stencil: false,
       powerPreference: "high-performance",
     });
@@ -69,13 +86,24 @@ export class Stage {
     this.maxPixels = this.quality === "high" ? 4.2e6 : 2.2e6;
     this.prScale = 1;
 
+    // Half-float targets need a GPU that can render into them. Without one
+    // the picture falls back to 8-bit and goes without bloom (whose own
+    // targets are half-float) rather than turning black.
+    this.floatTargets =
+      renderer.extensions.has("EXT_color_buffer_float") || renderer.extensions.has("EXT_color_buffer_half_float");
     const rt = new THREE.WebGLRenderTarget(4, 4, {
-      type: THREE.HalfFloatType,
+      type: this.floatTargets ? THREE.HalfFloatType : THREE.UnsignedByteType,
       samples: this.quality === "high" ? 4 : 0,
     });
     this.composer = new EffectComposer(renderer, rt);
 
-    this.bgPass = new RenderPass(new THREE.Scene(), new THREE.PerspectiveCamera());
+    // While a new world compiles behind the veil, the background pass draws
+    // this empty scene instead of being switched off: the board pass clears
+    // depth before it binds its target (three r170's RenderPass), so it
+    // relies on the background pass having bound — and cleared — it.
+    this.emptyScene = new THREE.Scene();
+    this.emptyCamera = new THREE.PerspectiveCamera();
+    this.bgPass = new RenderPass(this.emptyScene, this.emptyCamera);
     this.composer.addPass(this.bgPass);
 
     // Foreground: the playfield, framed by its own camera so it can be pinned
@@ -125,11 +153,15 @@ export class Stage {
     this.parallax = { x: 0, y: 0 };
 
     this.size = { w: 0, h: 0, pr: 1 };
-    this.client = null; // the canvas's CSS size, read once a frame (measure)
+    this.client = { w: 0, h: 0 }; // the canvas's CSS size, read once a frame (measure)
+    this.measured = false;
+    this.builtReduced = this.reducedMotion; // the setting the world on screen was built with
     const top = this.quality === "high" ? 0 : 1;
     this.perf = {
-      acc: 0, frames: 0, step: top, top: top, ceiling: top, floor: LADDER.length - 1,
-      ceilingAge: 0, floorAge: 0, fast: 0, probe: null, skip: 0,
+      acc: 0, samples: [], step: top, top: top, ceiling: top, floor: LADDER.length - 1,
+      ceilingAge: 0, floorAge: 0, floorTtl: FLOOR_TTL, fast: 0, steady: 0, lastMed: 0,
+      capped: false, // a step down did not help: frames are held by something else
+      probe: null, skip: 0,
       learnt: new Map(), // world id → the limits found for it
     };
     this.resetPerfLimits();
@@ -324,12 +356,14 @@ export class Stage {
       this.startTransition(def);
     } else if (tr.phase === "out") {
       if (def === this.def) {
-        // Changed our mind before the swap: fade straight back in.
+        // Changed our mind before the swap: fade straight back in. (A Motion
+        // toggle meanwhile is caught when the wipe ends — see "in".)
         const k = clamp(tr.t / FADE_OUT, 0, 1);
         tr.phase = "in";
         tr.t = (1 - k) * FADE_IN;
       } else {
         tr.next = def;
+        this.setVeil(def);
       }
     } else {
       // Too late to retarget this wipe — run another once it has cleared.
@@ -340,18 +374,33 @@ export class Stage {
   startTransition(def) {
     this.transition = { phase: "out", t: 0, next: def, queued: null, rebuild: false };
     // Frame times measured across a wipe belong to two different worlds; a
-    // quality trial running now would compare one with the other.
-    this.perf.probe = null;
+    // quality trial running now would compare one with the other, so it is
+    // called off — and its step undone, not left in place unjudged.
+    this.cancelProbe();
+    this.setVeil(def);
+    this.fadeQuad.visible = true;
+  }
+
+  // The wipe takes the colours of the world it leads to.
+  setVeil(def) {
     this.fadeUniforms.uColor.value.set(def.palette.fade || def.palette.board || "#000");
     this.fadeUniforms.uEdge.value.set(def.palette.accent).multiplyScalar(0.8);
-    this.fadeQuad.visible = true;
   }
 
   endTransition() {
     this.transition = null;
     this.fadeQuad.visible = false;
     this.fadeUniforms.uProgress.value = 0;
-    this.bgPass.enabled = true;
+    this.bindBackground();
+  }
+
+  // What the background pass draws: the world, or nothing while the next
+  // one is compiling behind the veil (see emptyScene).
+  bindBackground() {
+    const tr = this.transition;
+    const show = this.inst && !(tr && tr.phase === "load");
+    this.bgPass.scene = show ? this.inst.scene : this.emptyScene;
+    this.bgPass.camera = show ? this.inst.camera : this.emptyCamera;
   }
 
   swapScene(def, keepOld) {
@@ -375,8 +424,10 @@ export class Stage {
       });
     } catch (err) {
       this.def = prev;
+      this.bindBackground();
       throw err;
     }
+    this.builtReduced = this.reducedMotion;
     // A new world costs differently: the quality ladder takes up what it
     // learnt here before, or explores afresh.
     this.resetPerfLimits();
@@ -386,8 +437,7 @@ export class Stage {
     this.sceneTime = Math.random() * 600;
     const cam = this.inst.camera;
     cam.userData.baseFov = cam.fov;
-    this.bgPass.scene = this.inst.scene;
-    this.bgPass.camera = cam;
+    this.bindBackground();
     this.bloomParams = Object.assign({ strength: 0.8, radius: 0.45, threshold: 0.7 }, def.bloom);
     this.exposure = def.exposure || 1;
     this.applyCameraAspect();
@@ -407,12 +457,12 @@ export class Stage {
         // Don't draw the new world until its shaders are linked: the first
         // draw of an unlinked program blocks the main thread, which would
         // freeze the wipe. The veil covers the screen meanwhile.
-        this.bgPass.enabled = false;
+        this.bindBackground();
         const done = () => {
           if (this.transition !== tr || tr.phase !== "load") return;
           tr.phase = "in";
           tr.t = 0;
-          this.bgPass.enabled = true;
+          this.bindBackground();
         };
         // Whatever happens below, the veil lifts again.
         setTimeout(done, LOAD_TIMEOUT_MS);
@@ -431,7 +481,7 @@ export class Stage {
               console.error(e);
             }
           }
-          if (!this.inst) this.bgPass.scene = new THREE.Scene();
+          this.bindBackground();
         }
         if (this.inst) this.precompile(this.inst.scene, this.inst.camera).then(done, done);
         else done();
@@ -442,7 +492,9 @@ export class Stage {
       this.fadeUniforms.uProgress.value = e * e * (3 - 2 * e);
       if (k >= 1) {
         const queued = tr.queued;
-        const rebuild = tr.rebuild;
+        // Also when Motion was toggled while the wipe ran and then turned
+        // back to the world it started from, still built the old way.
+        const rebuild = tr.rebuild || this.builtReduced !== this.reducedMotion;
         this.endTransition();
         if (queued && queued !== this.def) this.startTransition(queued);
         else if (rebuild) this.startTransition(this.def);
@@ -466,6 +518,9 @@ export class Stage {
         console.error(err);
       }
     }
+    // Every program is gone with the old context; start building them now
+    // rather than on the first frame that needs each.
+    if (this.inst) this.precompile(this.inst.scene, this.inst.camera).catch(() => {});
     for (const fn of this.contextListeners) fn("restored");
   }
 
@@ -475,13 +530,16 @@ export class Stage {
   // frame, before it writes to the DOM, so the read never forces a layout;
   // resize() then uses the cached numbers.
   measure() {
-    this.client = { w: this.canvas.clientWidth, h: this.canvas.clientHeight };
+    this.client.w = this.canvas.clientWidth;
+    this.client.h = this.canvas.clientHeight;
+    this.measured = true;
   }
 
   resize() {
     // The canvas, not the window: with a classic scrollbar the two differ,
     // and the board would be pinned a few pixels off its HTML frame.
-    const c = this.client || { w: this.canvas.clientWidth, h: this.canvas.clientHeight };
+    if (!this.measured) this.measure();
+    const c = this.client;
     const w = Math.max(1, c.w || window.innerWidth);
     const h = Math.max(1, c.h || window.innerHeight);
     const dpr = window.devicePixelRatio || 1;
@@ -550,7 +608,9 @@ export class Stage {
     const { w, h } = this.size;
     const cam = this.fgCamera;
     cam.aspect = w / h;
-    if (!rect || rect.height < 2) {
+    // A collapsed rect (hidden, mid-layout) would put the camera at an
+    // infinite distance.
+    if (!rect || rect.height < 2 || rect.width < 2) {
       cam.clearViewOffset();
       cam.position.set(0, 0, 60);
       cam.updateProjectionMatrix();
@@ -615,7 +675,7 @@ export class Stage {
     const s = LADDER[i];
     this.perf.step = i;
     this.prScale = s.scale;
-    this.bloom.enabled = s.bloom;
+    this.bloom.enabled = s.bloom && this.floatTargets;
     const samples = s.msaa ? 4 : 0;
     const c = this.composer;
     if (c.renderTarget1.samples !== samples) {
@@ -636,16 +696,31 @@ export class Stage {
   resetPerfLimits() {
     const p = this.perf;
     if (!p) return;
+    this.cancelProbe();
     const known = this.def && p.learnt.get(this.def.id);
     p.ceiling = known ? known.ceiling : p.top;
     p.floor = known ? known.floor : LADDER.length - 1;
     p.ceilingAge = known ? known.ceilingAge : 0;
     p.floorAge = known ? known.floorAge : 0;
-    p.probe = null;
+    p.floorTtl = known ? known.floorTtl : FLOOR_TTL;
+    p.capped = known ? known.capped : false;
     p.fast = 0;
+    p.steady = 0;
+    p.lastMed = 0;
     p.acc = 0;
-    p.frames = 0;
+    p.samples.length = 0;
     p.skip = 1;
+  }
+
+  // A trial that can no longer be judged (a world swap, a Motion toggle, a
+  // lost context) is undone: left in place it would stick unjudged, and the
+  // ladder would only ever drift down.
+  cancelProbe() {
+    const p = this.perf;
+    const probe = p && p.probe;
+    if (!probe) return;
+    p.probe = null;
+    if (p.step !== probe.from) this.applyStep(probe.from);
   }
 
   rememberLimits() {
@@ -656,6 +731,8 @@ export class Stage {
       floor: p.floor,
       ceilingAge: p.ceilingAge,
       floorAge: p.floorAge,
+      floorTtl: p.floorTtl,
+      capped: p.capped,
     });
   }
 
@@ -669,33 +746,37 @@ export class Stage {
     }
     if (p.floor !== LADDER.length - 1) {
       p.floorAge += seconds;
-      if (p.floorAge >= FLOOR_TTL) p.floor = LADDER.length - 1;
+      if (p.floorAge >= p.floorTtl) p.floor = LADDER.length - 1;
     }
   }
 
-  // Walk the quality ladder from the measured frame times. A step down is
-  // a trial: if the next verdict isn't clearly faster, the bottleneck is
-  // elsewhere (a frame-rate cap, the CPU), so it is undone and the ladder
-  // stops there. A step up that turns out slow is undone and becomes the
-  // ceiling, so the two can never see-saw — within one world (see
-  // resetPerfLimits).
+  // Walk the quality ladder from the measured frame times (the median of
+  // each window). A step down is a trial: if the next verdict isn't clearly
+  // faster, the bottleneck is elsewhere (a frame-rate cap, the CPU), so it is
+  // undone and the ladder stops there — and, as lower steps don't help, it
+  // may then climb back towards the best picture while frames stay as they
+  // are, the way a 30 fps-capped phone needs. A step up that turns out slow
+  // (or, at a cap, slower) is undone and becomes the ceiling, so the two
+  // can never see-saw — within one world (see resetPerfLimits).
   trackPerformance(dt) {
     const p = this.perf;
     // World swaps compile shaders and stall a frame or two: not the device.
     if (this.transition) {
       p.acc = 0;
-      p.frames = 0;
+      p.samples.length = 0;
       return;
     }
     p.acc += dt;
-    p.frames++;
+    p.samples.push(dt);
     if (p.acc < PERF_WINDOW) return;
-    const avg = p.acc / p.frames;
+    const med = median(p.samples);
     const span = p.acc;
     p.acc = 0;
-    p.frames = 0;
+    p.samples.length = 0;
     if (document.hidden) return;
     this.ageLimits(span);
+    const prev = p.lastMed;
+    p.lastMed = med;
     if (p.skip > 0) {
       p.skip--;
       return;
@@ -704,37 +785,66 @@ export class Stage {
     const probe = p.probe;
     p.probe = null;
     if (probe) {
-      if (probe.down && avg > probe.avg * 0.88) {
-        this.applyStep(probe.from);
-        p.floor = probe.from;
-        p.floorAge = 0;
-        this.rememberLimits();
-        return;
-      }
-      if (!probe.down && avg > SLOW_FRAME) {
-        this.applyStep(probe.from);
-        p.ceiling = probe.from;
-        p.ceilingAge = 0;
-        this.rememberLimits();
-        return;
+      if (probe.down) {
+        if (med > probe.med * 0.88) {
+          this.applyStep(probe.from);
+          p.floor = probe.from;
+          p.floorAge = 0;
+          // Found before at this very step: hold it longer this time.
+          if (p.capped) p.floorTtl = Math.min(FLOOR_TTL_MAX, p.floorTtl * 2);
+          p.capped = true;
+          p.steady = 0;
+          this.rememberLimits();
+          return;
+        }
+        // It helped: the GPU really was the bottleneck.
+        p.capped = false;
+        p.floorTtl = FLOOR_TTL;
+      } else {
+        const slower = med > probe.med * 1.12;
+        if (med > SLOW_FRAME && (slower || !p.capped)) {
+          this.applyStep(probe.from);
+          p.ceiling = probe.from;
+          p.ceilingAge = 0;
+          p.steady = 0;
+          this.rememberLimits();
+          return;
+        }
+        // Kept at a cap: going back down would not help either.
+        if (p.capped) {
+          p.floor = p.step;
+          p.floorAge = 0;
+          this.rememberLimits();
+        }
       }
     }
 
-    if (avg > SLOW_FRAME) {
+    if (med > SLOW_FRAME) {
       p.fast = 0;
       if (p.step < p.floor) {
-        p.probe = { down: true, from: p.step, avg };
+        p.steady = 0;
+        p.probe = { down: true, from: p.step, med };
         this.applyStep(p.step + 1);
+      } else if (p.capped && p.step > p.ceiling && prev > 0 && Math.abs(med - prev) < prev * 0.08) {
+        if (++p.steady >= STEADY_VERDICTS) {
+          p.steady = 0;
+          p.probe = { down: false, from: p.step, med };
+          this.applyStep(p.step - 1);
+        }
+      } else {
+        p.steady = 0;
       }
-    } else if (avg < FAST_FRAME) {
+    } else if (med < FAST_FRAME) {
+      p.steady = 0;
       p.fast++;
       if (p.fast >= 3 && p.step > p.ceiling) {
         p.fast = 0;
-        p.probe = { down: false, from: p.step, avg };
+        p.probe = { down: false, from: p.step, med };
         this.applyStep(p.step - 1);
       }
     } else {
       p.fast = 0;
+      p.steady = 0;
     }
   }
 }

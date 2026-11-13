@@ -30,6 +30,7 @@
     <meta name="twitter:image" content="https://robertlib.github.io/tangletris/og-image.jpg">
 
     <link rel="icon" href="../../icon.svg" type="image/svg+xml">
+    <link rel="icon" href="../../icons/icon-192.png" sizes="192x192" type="image/png">
     <link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
     <link rel="manifest" href="../../cs/manifest.webmanifest">
     <link rel="preload" href="../../fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -89,7 +90,7 @@
 
         <section class="section" aria-labelledby="controls">
           <h2 id="controls">Ovládání</h2>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Ovládání klávesnicí">
             <table>
               <caption>Klávesnice</caption>
               <thead>
@@ -163,7 +164,7 @@
 
         <section class="section" aria-labelledby="scoring">
           <h2 id="scoring">Bodování</h2>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Bodování">
             <table>
               <thead>
                 <tr><th scope="col">Co uděláš</th><th scope="col" class="num">Body</th></tr>
@@ -188,7 +189,7 @@
         <section class="section" aria-labelledby="levels">
           <h2 id="levels">Levely a rychlost</h2>
           <p class="section-intro">Každých 10 řad postoupíš o level. S každým levelem se doba, za kterou kostka spadne o řádek, zkrátí o 14,5 % – z 800 ms na levelu 1 až na spodní hranici 70 ms na levelu 17 –, v Maratonu se přesuneš do dalšího světa a do balíčku se dostane víc <a href="../tvary/">divných tvarů</a>.</p>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Rychlost a divné tvary podle levelu">
             <table>
               <caption>Maraton</caption>
               <thead>
@@ -307,7 +308,7 @@
       <div class="wrap">
         <nav class="footer-nav" aria-label="Stránky">
           <ul>
-          <li><a class="" href="../">Hrát</a></li>
+          <li><a href="../">Hrát</a></li>
           <li><a href="./" aria-current="page">Jak hrát</a></li>
           <li><a href="../tvary/">Tvary</a></li>
           <li><a href="../svety/">Světy</a></li>

@@ -349,7 +349,7 @@ function layout(c, page) {
   const ld = [breadcrumbLd(c, navName)].concat(page.ld || []);
 
   const navLinks = (cls) =>
-    [`<li><a class="${cls}" href="${c.game}">${c.t(UI.nav.game)}</a></li>`]
+    [`<li><a${cls ? ` class="${cls}"` : ""} href="${c.game}">${c.t(UI.nav.game)}</a></li>`]
       .concat(
         NAV_ORDER.map((k) => {
           const cur = k === key ? ' aria-current="page"' : "";
@@ -401,6 +401,7 @@ function layout(c, page) {
     <meta name="twitter:image" content="${OG_IMAGE}">
 
     <link rel="icon" href="${c.root}icon.svg" type="image/svg+xml">
+    <link rel="icon" href="${c.root}icons/icon-192.png" sizes="192x192" type="image/png">
     <link rel="apple-touch-icon" href="${c.root}icons/apple-touch-icon.png">
     <link rel="manifest" href="${c.root}${lang === "cs" ? "cs/" : ""}manifest.webmanifest">
     ${preloads}
@@ -825,7 +826,7 @@ function piecesPage(lang) {
             en: `Every bag holds the classic seven in full — ${PIECES[0].weight} Lines and ${PIECES[1].weight} of each other classic. Each odd shape adds its weight in copies, but in Marathon every copy only makes it into the bag with a chance that grows with your level: ${pct(lang, tangleRatio(1))} at level 1, 12 points more each level, and ${pct(lang, 1)} from level ${FULL_TANGLE_LEVEL}. The difficulty curve is baked into the bag itself.`,
             cs: `Každý balíček obsahuje celou klasickou sedmičku – ${PIECES[0].weight} Čar a po ${PIECES[1].weight} kopiích od ostatních klasických tvarů. Každý divný tvar přidá tolik kopií, kolik je jeho váha, jenže v Maratonu se každá kopie do balíčku dostane jen s pravděpodobností, která roste s levelem: ${pct(lang, tangleRatio(1))} na levelu 1, s každým dalším o 12 procentních bodů víc, až se od levelu ${FULL_TANGLE_LEVEL} dostane do balíčku každá. Křivka obtížnosti je tak zapečená přímo v balíčku.`,
           })}</p>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="${c.t({ en: "Odd shapes in the Marathon bag", cs: "Divné tvary v balíčku Maratonu" })}">
             <table>
               <caption>${c.t({ en: "Odd shapes in the Marathon bag", cs: "Divné tvary v balíčku Maratonu" })}</caption>
               <thead>
@@ -1397,7 +1398,7 @@ function howtoPage(lang) {
 
         <section class="section" aria-labelledby="controls">
           <h2 id="controls">${c.t({ en: "Controls", cs: "Ovládání" })}</h2>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="${c.t({ en: "Keyboard controls", cs: "Ovládání klávesnicí" })}">
             <table>
               <caption>${c.t({ en: "Keyboard", cs: "Klávesnice" })}</caption>
               <thead>
@@ -1457,7 +1458,7 @@ function howtoPage(lang) {
 
         <section class="section" aria-labelledby="scoring">
           <h2 id="scoring">${c.t({ en: "Scoring", cs: "Bodování" })}</h2>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="${c.t({ en: "Scoring", cs: "Bodování" })}">
             <table>
               <thead>
                 <tr><th scope="col">${c.t({ en: "What you do", cs: "Co uděláš" })}</th><th scope="col" class="num">${c.t({
@@ -1486,7 +1487,7 @@ function howtoPage(lang) {
             en: `You go up a level every 10 lines. Each level cuts the time a piece takes to fall one row by 14.5% — from ${fallMs(1)} ms at level 1 down to the ${fallMs(FLOOR_LEVEL)} ms floor at level ${FLOOR_LEVEL} — moves you to the next world in Marathon and pulls more <a href="{page:pieces}">odd shapes</a> into the bag.`,
             cs: `Každých 10 řad postoupíš o level. S každým levelem se doba, za kterou kostka spadne o řádek, zkrátí o 14,5${NBSP}% – z ${fallMs(1)} ms na levelu 1 až na spodní hranici ${fallMs(FLOOR_LEVEL)} ms na levelu ${FLOOR_LEVEL} –, v Maratonu se přesuneš do dalšího světa a do balíčku se dostane víc <a href="{page:pieces}">divných tvarů</a>.`,
           })}</p>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="${c.t({ en: "Speed and odd shapes by level", cs: "Rychlost a divné tvary podle levelu" })}">
             <table>
               <caption>${c.t({ en: "Marathon", cs: "Maraton" })}</caption>
               <thead>
@@ -1640,7 +1641,7 @@ function dailyPage(lang) {
     .join("\n              ");
 
   const sample = c.t({
-    en: "Tangletris Daily #12 🧩\n18,430 · 37 lines · 75 % tangled\n🔥 5-day streak",
+    en: "Tangletris Daily #12 🧩\n18,430 · 37 lines · 75% tangled\n🔥 5-day streak",
     cs: `Tangletris Denní #12 🧩\n18${NBSP}430 · 37 řad · zamotanost 75${NBSP}%\n🔥 série 5 dní`,
   });
 

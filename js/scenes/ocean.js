@@ -431,6 +431,10 @@ export default {
     }
     kelpGeo.setAttribute("aBase", new THREE.InstancedBufferAttribute(kBase, 4));
     kelpGeo.setAttribute("aShape", new THREE.InstancedBufferAttribute(kShape, 4));
+    // The blade edges fade out over a pixel. With MSAA, alpha-to-coverage
+    // turns that fade into partial coverage, so almost nothing is cut;
+    // without it every drawn fragment is solid, and the cut has to sit at
+    // half coverage or the edges grow jagged and fat (see setMsaa).
     const kelpUniforms = {
       ...shared,
       uSway: { value: 1 },
@@ -1172,6 +1176,11 @@ export default {
         const pr = env.renderer.getPixelRatio();
         jellyUniforms.uPx.value = (2 * tanV) / (h * pr);
         snowUniforms.uScale.value = (h * pr) / (2 * tanV);
+      },
+      // The stage's quality ladder gives up MSAA first, and alpha-to-coverage
+      // goes with it: the kelp falls back to a plain half-coverage cut.
+      setMsaa(on) {
+        kelpUniforms.uCut.value = on && hi ? 0.02 : 0.5;
       },
       update(t, dt, a) {
         // A stalled or out-of-order frame must never extrapolate the smoothing.

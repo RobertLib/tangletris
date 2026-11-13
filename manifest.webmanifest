@@ -19,6 +19,13 @@
   ],
   "screenshots": [
     {
+      "src": "img/screenshot-narrow.jpg",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "The 3D board on a phone, in the Neon Drive world"
+    },
+    {
       "src": "og-image.jpg",
       "sizes": "1200x630",
       "type": "image/jpeg",

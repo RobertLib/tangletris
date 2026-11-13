@@ -814,6 +814,13 @@ export default {
     const flakeGeo = new THREE.BufferGeometry();
     flakeGeo.setAttribute("position", new THREE.BufferAttribute(flakePos, 3));
     flakeGeo.setAttribute("aSeed", new THREE.BufferAttribute(flakeSeed, 4));
+    // The fall and the wind only ever grow, and a float32 uniform that
+    // large would make the flakes judder. They wrap round instead, after
+    // LAPS crossings of the box at speed 1; the shader rounds each flake's
+    // speed to a whole number of crossings per wrap, so nothing jumps.
+    const LAPS = 50;
+    const FALL_WRAP = BOX.y * LAPS;
+    const WIND_WRAP = BOX.x * LAPS;
     const snowUniforms = {
       uFall: { value: 0 },
       uWind: { value: 0 },
@@ -836,7 +843,7 @@ export default {
           varying float vSpark;
           void main() {
             vec3 p = position;
-            float speed = 0.55 + aSeed.x * 0.9;
+            float speed = floor((0.55 + aSeed.x * 0.9) * ${LAPS.toFixed(1)} + 0.5) / ${LAPS.toFixed(1)};
             p.y = mod(p.y - uFall * speed, uBox.y) - 4.0;
             float sway = sin(uTime * (0.5 + aSeed.y * 0.7) + aSeed.y * 6.28) * (1.5 + aSeed.x * 3.0);
             p.x = mod(p.x + uWind * speed + sway + uBox.x * 0.5, uBox.x) - uBox.x * 0.5;
@@ -1019,7 +1026,7 @@ export default {
           camT = t * slow;
           flow = t * 0.45 * slow;
           sway = t * 0.7 * slow;
-          fall = t * 6 * slow;
+          fall = (t * 6 * slow) % FALL_WRAP;
         }
         const k = Math.min(1, dt * 0.6);
         smooth.energy += (a.energy - smooth.energy) * k;
@@ -1050,8 +1057,8 @@ export default {
         moonGlow.material.opacity = 0.26 + a.kick * 0.04;
 
         // Snow drifts on the wind; the wind picks up with the music.
-        fall += dt * (5 + e * 3 + danger * 5) * slow;
-        wind += dt * (3 + e * 4 + danger * 10) * slow;
+        fall = (fall + dt * (5 + e * 3 + danger * 5) * slow) % FALL_WRAP;
+        wind = (wind + dt * (3 + e * 4 + danger * 10) * slow) % WIND_WRAP;
         snowUniforms.uFall.value = fall;
         snowUniforms.uWind.value = wind;
         snowUniforms.uTime.value = t * slow;

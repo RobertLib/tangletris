@@ -525,7 +525,10 @@ function finishClear() {
     return;
   }
   spawn();
-  runBuffered();
+  // Once the Daily clock has run out, a drop buffered during the last clear
+  // would score after the whistle: only the clear itself still counts.
+  if (rules.timeLimit && state.time >= rules.timeLimit) state.buffered = null;
+  else runBuffered();
 }
 
 // The last turn, hold or drop pressed during the clear acts on the new piece.
@@ -704,9 +707,13 @@ export function timeLeft() {
   return rules.timeLimit ? Math.max(0, rules.timeLimit - state.time) : 0;
 }
 
-export function update(dt, now) {
+// `dt` drives the rules (gravity, lock delay, key repeat) and is capped by
+// the caller, so a stalled frame never teleports a piece. `clockDt`, when
+// given, is the real time that passed: the Sprint and Daily clocks follow
+// the wall clock, so a slow device gains nothing from its hitches.
+export function update(dt, now, clockDt) {
   if (state.mode === "playing") {
-    state.time += dt;
+    state.time += clockDt === undefined ? dt : clockDt;
     // A clear that started in time still counts: the clock only ends the run
     // between pieces.
     if (rules.timeLimit && state.time >= rules.timeLimit && !state.clearing) {

@@ -18,12 +18,54 @@ function under(m, top) {
   return m;
 }
 
+// The note of pitch class `pc` in [low, low + 11].
+function noteIn(pc, low) {
+  return low + ((((pc - low) % 12) + 12) % 12);
+}
+
+// The string notes the effects play, shared with warmSfx() so the two
+// can't drift apart. Hard drop: the chord's bass note, low.
+function dropNote(chord) {
+  return noteIn(chord.bass, 40);
+}
+
+// Line clear: a run up the chord from a base that climbs with the combo.
+function clearNotes(chord, combo) {
+  const base = 67 + Math.min(combo, 8) * 2;
+  return chordNotes(chord, base, base + 30);
+}
+
+// Game over: a run down the scale, every other degree — two octaves in a
+// five-note scale, so it reaches ~51.
+function fallNotes(lad) {
+  const d = lad.degreeOf(76);
+  const out = [];
+  for (let i = 0; i < 6; i++) out.push(lad.midi(d - i * 2));
+  return out;
+}
+
+// Runs `fn` after `ms`, once the main thread has a moment (Safari has no
+// requestIdleCallback: there it simply runs).
+function whenIdle(fn, ms) {
+  setTimeout(() => {
+    if (typeof requestIdleCallback === "function") requestIdleCallback(fn, { timeout: 500 });
+    else fn();
+  }, ms);
+}
+
+// The audio clock may stand still this long (visible page, running context)
+// before the watchdog restarts the context — see watchClock().
+const STALL_MS = 1500;
+
 export { TRACKS };
 
 export class Director {
   constructor() {
     this.eng = new Engine();
     this.song = null;
+    this.outgoing = null; // the song this one replaced, until it comes in
+    this.warmId = 0;
+    this.clock = { t: -1, since: 0, last: 0, kicked: false };
     this.trackId = null;
     this.token = 0;
     this.loading = null; // { id, token } of the track being prepared
@@ -49,7 +91,10 @@ export class Director {
       const fresh = !this.ready;
       if (fresh) this.syncSession();
       const ok = this.eng.ensure(this.musicOn || this.sfxOn);
-      if (ok && !this.fx) this.buildSfx();
+      if (ok && !this.fx) {
+        this.buildSfx();
+        this.warmSfx(this.song);
+      }
       if (ok && fresh && !this.musicOn && !this.sfxOn) this.eng.suspend();
       return ok;
     } catch (e) {
@@ -124,6 +169,7 @@ export class Director {
     const now = this.eng.ctx.currentTime;
     if (old) old.stop(1.8);
     this.song = song;
+    this.outgoing = old;
     try {
       song.start(now + (old ? 0.45 : 0.06));
       this.warmSfx(song);
@@ -135,25 +181,45 @@ export class Director {
     }
   }
 
+  // The song the player hears. A new one takes over as soon as it is
+  // loaded but comes in a moment later; until then the old one is still
+  // playing, and the effects stay in its key.
+  heard() {
+    const song = this.song;
+    if (song && this.outgoing && this.eng.ctx.currentTime < song.startTime) return this.outgoing;
+    this.outgoing = null;
+    return song;
+  }
+
   // The effects' string notes are rendered on first use — otherwise inside
   // the key handler of the first line clear or hard drop. Render the ones
-  // this key can ask for in the background instead, a few at a time (hard
-  // drop: chord roots 40–52; clears and game over: 59–96).
+  // this key can ask for in the background instead, a few at a time: for
+  // `song`, or with no song the fallback key the effects use without music.
   warmSfx(song) {
     const pluck = this.fx && this.fx.pluck;
     if (!pluck || !pluck.warm || !this.sfxOn) return;
-    const tr = song.track;
-    const scale = new Set(MODES[tr.mode].map((iv) => (pitchClass(tr.key) + iv) % 12));
-    const notes = [];
-    for (let m = 40; m <= 52; m++) if (scale.has(m % 12)) notes.push(m);
-    for (let m = 59; m <= 96; m++) if (scale.has(m % 12)) notes.push(m);
-    const token = this.token;
+    // With music on, a song is coming and will warm its own key.
+    if (!song && this.musicOn) return;
+    const lad = song ? song.ladder : FALLBACK_LADDER;
+    const chords = [];
+    if (song) {
+      for (const name in song.track.progressions) {
+        for (const item of song.track.progressions[name]) for (const c of [].concat(item)) chords.push(parseChord(c));
+      }
+    } else chords.push(FALLBACK_CHORD);
+    const notes = new Set();
+    for (const c of chords) notes.add(dropNote(c));
+    for (const m of fallNotes(lad)) notes.add(m);
+    for (const c of chords) for (let combo = 0; combo <= 8; combo++) for (const m of clearNotes(c, combo)) notes.add(under(m, 96));
+    const list = [...notes];
+    const id = ++this.warmId;
     const step = () => {
-      if (token !== this.token || !notes.length) return;
-      for (let i = 0; i < 3 && notes.length; i++) pluck.warm(notes.shift());
-      setTimeout(step, 30);
+      // Superseded, or the music moved on (or came in) meanwhile.
+      if (id !== this.warmId || !this.sfxOn || this.song !== song || !list.length) return;
+      for (let i = 0; i < 2 && list.length; i++) pluck.warm(list.shift());
+      whenIdle(step, 30);
     };
-    setTimeout(step, 600);
+    whenIdle(step, 600);
   }
 
   stopMusic(fade) {
@@ -188,6 +254,8 @@ export class Director {
       this.token++;
       if (this.song) this.song.stop(0.4);
       this.song = null;
+      // The effects fall back to their own key now.
+      this.warmSfx(null);
     } else if (this.wantMusic && this.trackId && this.ready) {
       this.startTrack(this.trackId);
     }
@@ -205,6 +273,7 @@ export class Director {
       g.cancelScheduledValues(t);
       g.setTargetAtTime(on ? SFX_LEVEL : 0, t, on ? 0.005 : 0.04);
     }
+    if (on) this.warmSfx(this.song);
     this.idle();
   }
 
@@ -233,6 +302,7 @@ export class Director {
   /* -- pulses for the visuals ----------------------------------------- */
 
   update(dt) {
+    this.watchClock();
     const p = this.pulses;
     const k = Math.exp(-dt * 7.5);
     p.kick *= k;
@@ -264,6 +334,41 @@ export class Director {
     p.energy += ((song.section ? song.section.energy : 0) - p.energy) * Math.min(1, dt * 0.8);
   }
 
+  // After a phone call or Siri, iOS can hand back a context that says
+  // "running" but whose clock never moves again: silence, and nothing to
+  // say why. If the clock has stood still for STALL_MS of wall time while
+  // the page is visible and the context claims to run, stop and start it,
+  // once per stall. Runs from update(), so it costs nothing on its own and
+  // nothing at all before audio is unlocked.
+  watchClock() {
+    const ctx = this.eng.ctx;
+    const w = this.clock;
+    const visible = !(typeof document !== "undefined" && document.hidden);
+    if (!ctx || ctx.state !== "running" || !visible || typeof performance === "undefined") {
+      w.since = 0;
+      return;
+    }
+    const wall = performance.now();
+    const gap = wall - w.last;
+    w.last = wall;
+    if (ctx.currentTime !== w.t) {
+      w.t = ctx.currentTime;
+      w.since = wall;
+      w.kicked = false;
+      return;
+    }
+    // Just became visible or running, or the main thread itself was held
+    // up (the clock may not have been read since): start counting afresh.
+    if (!w.since || gap > 250) {
+      w.since = wall;
+      return;
+    }
+    if (w.kicked || wall - w.since < STALL_MS) return;
+    w.kicked = true;
+    console.warn("Audio clock stuck at " + w.t.toFixed(3) + " s while running; restarting the context");
+    this.eng.restart(() => (this.musicOn || this.sfxOn) && !(typeof document !== "undefined" && document.hidden));
+  }
+
   /* -- sound effects --------------------------------------------------- */
 
   buildSfx() {
@@ -293,11 +398,13 @@ export class Director {
   }
 
   chord() {
-    return (this.song && this.song.chordNow()) || FALLBACK_CHORD;
+    const song = this.heard();
+    return (song && song.chordNow()) || FALLBACK_CHORD;
   }
 
   ladder() {
-    return this.song ? this.song.ladder : FALLBACK_LADDER;
+    const song = this.heard();
+    return song ? song.ladder : FALLBACK_LADDER;
   }
 
   tone(t, freq, dur, type, gain, slideTo, dest) {
@@ -385,16 +492,14 @@ export class Director {
     this.noise(t, 0.08, "bandpass", 5200, 500, 0.2 * k, 1.2);
     this.tone(t + 0.02, 120, 0.32, "sine", 0.55 * k + 0.15, 38);
     this.noise(t + 0.02, 0.09, "lowpass", 2400, 200, 0.28 * k, 0.8);
-    const root = chordNotes(this.chord(), 40, 52)[0];
-    if (root) this.fx.pluck.play(t + 0.02, root, 0.2, 0.55 * k);
+    this.fx.pluck.play(t + 0.02, dropNote(this.chord()), 0.2, 0.55 * k);
   }
 
   clear(n, combo) {
     if (!this.can()) return;
     const t = this.eng.now;
     const ch = this.chord();
-    const base = 67 + Math.min(combo, 8) * 2;
-    const notes = chordNotes(ch, base, base + 30);
+    const notes = clearNotes(ch, combo);
     const count = [0, 3, 4, 5, 8][Math.min(4, n)];
     const gap = n >= 4 ? 0.038 : 0.05;
     for (let i = 0; i < count && i < notes.length; i++) {
@@ -440,12 +545,10 @@ export class Director {
   gameOver() {
     if (!this.can()) return;
     const t = this.eng.now;
-    const lad = this.ladder();
-    let d = lad.degreeOf(76);
-    for (let i = 0; i < 6; i++) {
-      this.fx.pluck.play(t + i * 0.16, lad.midi(d - i * 2), 0.4, 0.7 - i * 0.07);
-      this.fx.glass.play(t + i * 0.16, lad.midi(d - i * 2) + 12, 0.4, 0.3);
-    }
+    fallNotes(this.ladder()).forEach((m, i) => {
+      this.fx.pluck.play(t + i * 0.16, m, 0.4, 0.7 - i * 0.07);
+      this.fx.glass.play(t + i * 0.16, m + 12, 0.4, 0.3);
+    });
     impact(this.eng, this.fx.wet, t + 0.05, 0.6);
   }
 

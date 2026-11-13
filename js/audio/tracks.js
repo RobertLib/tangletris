@@ -232,7 +232,7 @@ export const TRACKS = {
       block: { type: "block", freq: 900, decay: 0.035, level: 0.32, vis: "snare" },
       kane: { type: "metal", freq: 1250, partials: [1, 2.32, 4.25, 6.63], ratio: 1.41, index: 0.6, decay: 0.7, click: 0.3, level: 0.12 },
       // A gong stands in for the crash cymbal.
-      crash: { type: "metal", freq: 110, partials: [1, 1.48, 2.15, 2.94, 3.76], ratio: 1.17, index: 0.5, decay: 3.2, level: 0.32, length: 4 },
+      crash: { type: "metal", freq: 110, partials: [1, 1.48, 2.15, 2.94, 3.76], ratio: 1.17, index: 0.5, decay: 3.2, level: 0.32 },
     },
     progressions: {
       calm: ["Dsus4", "Dsus4", "Ebmaj7", "Dsus4"],

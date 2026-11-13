@@ -16,7 +16,7 @@ const HAZE = new THREE.Vector3(-0.85, 0.55, -0.85).normalize();
 /* ------------------------------------------------------------------ nebula */
 
 // The nebula is far too expensive to evaluate per pixel every frame, so it is
-// painted once into a cube map when the scene is built; the sky just samples it.
+// painted once into a cube map (see sharedNebula); the sky just samples it.
 const NEBULA_FRAG =
   NOISE_GLSL +
   /* glsl */ `
@@ -109,9 +109,41 @@ const NEBULA_FRAG =
     gl_FragColor = vec4(uDeep + col, 1.0);
   }`;
 
-function bakeNebula(renderer, size) {
+// The picture never changes, so it is painted once per GPU context and kept
+// for good: a return visit, or the rebuild a Motion toggle causes, costs
+// neither a shader compile nor a ~48 MB render. renderer → size → nebula.
+const nebulae = new WeakMap();
+
+function sharedNebula(renderer, size) {
+  let bySize = nebulae.get(renderer);
+  if (!bySize) {
+    bySize = new Map();
+    nebulae.set(renderer, bySize);
+    // A lost context takes the texture with it: forget the bake, so the
+    // world the stage rebuilds after the restore paints a fresh one. (Not
+    // disposed — its GL objects died with the old context.)
+    renderer.domElement.addEventListener("webglcontextlost", () => bySize.clear());
+  }
+  let nebula = bySize.get(size);
+  if (!nebula) {
+    nebula = newNebula(renderer, size);
+    // One set up on a lost context would never be painted: don't keep it.
+    if (!renderer.getContext().isContextLost()) bySize.set(size, nebula);
+  }
+  return nebula;
+}
+
+// Sets up the bake and starts compiling its shader — in the background
+// where the browser can — so that painting it rarely waits on the compiler.
+// The world paints it once the program is ready (under the stage's veil),
+// or at the latest just before the sky is first drawn (paintNebula).
+function newNebula(renderer, size) {
+  // Half-float where the GPU can render into it; 8-bit otherwise (the stage
+  // makes the same call for its own targets) rather than a failed bake.
+  const ext = renderer.extensions;
+  const float = ext.has("EXT_color_buffer_float") || ext.has("EXT_color_buffer_half_float");
   const target = new THREE.WebGLCubeRenderTarget(size, {
-    type: THREE.HalfFloatType,
+    type: float ? THREE.HalfFloatType : THREE.UnsignedByteType,
     generateMipmaps: false,
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
@@ -119,7 +151,7 @@ function bakeNebula(renderer, size) {
     // waste ~24 MB at 1024².
     depthBuffer: false,
   });
-  // Freed in dispose(); the stage's sweep must leave it alone.
+  // Outlives every world that samples it: the stage's sweep must leave it be.
   target.texture.userData.shared = true;
   const mat = new THREE.ShaderMaterial({
     uniforms: {
@@ -148,12 +180,41 @@ function bakeNebula(renderer, size) {
     depthWrite: false,
   });
   const box = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), mat);
-  const bake = new THREE.Scene();
-  bake.add(box);
-  new THREE.CubeCamera(0.1, 10, target).update(renderer, bake);
-  box.geometry.dispose();
-  mat.dispose();
-  return target;
+  const scene = new THREE.Scene();
+  scene.add(box);
+  const cube = new THREE.CubeCamera(0.1, 10, target);
+  // three keys programs on the render target too, so compile against the
+  // one the bake draws into.
+  const prev = renderer.getRenderTarget();
+  const face = renderer.getActiveCubeFace();
+  const level = renderer.getActiveMipmapLevel();
+  try {
+    renderer.setRenderTarget(target);
+    renderer.compile(scene, cube.children[0]);
+  } catch (err) {
+    // Then the program is built when the bake first draws.
+  } finally {
+    renderer.setRenderTarget(prev, face, level);
+  }
+  return { target, job: { renderer, scene, box, cube } };
+}
+
+// Whether the bake's program has finished compiling (or can't tell).
+function nebulaReady(nebula) {
+  const job = nebula.job;
+  if (!job) return true;
+  const program = job.renderer.properties.get(job.box.material).currentProgram;
+  return !program || program.isReady() !== false;
+}
+
+// Paints the cube map, the first time it is called for a nebula.
+function paintNebula(nebula) {
+  const job = nebula.job;
+  if (!job) return;
+  nebula.job = null;
+  job.cube.update(job.renderer, job.scene);
+  job.box.geometry.dispose();
+  job.box.material.dispose();
 }
 
 /* ------------------------------------------------------------------- rings */
@@ -362,9 +423,9 @@ export default {
     const r = rng(1977);
 
     /* -- sky: baked nebula + two star layers, all riding with the camera -- */
-    const nebula = bakeNebula(env.renderer, hi ? 1024 : 512);
+    const nebula = sharedNebula(env.renderer, hi ? 1024 : 512);
     const skyUniforms = {
-      uNebula: { value: nebula.texture },
+      uNebula: { value: nebula.target.texture },
       uGain: { value: 1 },
       uWarm: { value: 0 },
     };
@@ -395,6 +456,9 @@ export default {
       })
     );
     sky.renderOrder = -1000;
+    // A nebula not painted yet (the first visit) is painted at the latest
+    // here, just before the sky first needs it.
+    sky.onBeforeRender = () => paintNebula(nebula);
     sky.frustumCulled = false;
     scene.add(sky);
 
@@ -960,6 +1024,9 @@ export default {
       scene,
       camera,
       update(t, dt, a) {
+        // On the first visit: paint the nebula as soon as its shader is
+        // ready — while the stage's veil still hides the new world.
+        if (nebula.job && nebulaReady(nebula)) paintNebula(nebula);
         // Hosts can hand over a negative or huge first step; the pulses are
         // clamped too, so a glitch upstream can never flood the bloom.
         dt = clamp(dt, 0, 0.25);
@@ -1070,9 +1137,8 @@ export default {
       resize() {
         frame();
       },
-      dispose() {
-        nebula.dispose();
-      },
+      // No dispose(): the nebula outlives the world (see sharedNebula), and
+      // the stage's sweep frees everything else.
     };
   },
 };

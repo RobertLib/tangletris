@@ -249,9 +249,11 @@ export class Board {
             float line = 1.0 - min(min(d.x, d.y), 1.0);
             // Dots at the grid crossings read as more refined than full lines.
             vec2 c = abs(fract(g + 0.5) - 0.5);
-            float dot = smoothstep(0.09, 0.04, length(c));
+            // (Not named "dot": that would shadow the built-in function,
+            // which a strict GLSL compiler rejects.)
+            float dots = smoothstep(0.09, 0.04, length(c));
             vec3 col = uColor * (0.7 + 0.6 * vUv.y);
-            col += uGrid * (line * 0.05 + dot * 0.22) * (1.0 + uPulse * 0.6);
+            col += uGrid * (line * 0.05 + dots * 0.22) * (1.0 + uPulse * 0.6);
             // Vignette towards the edges of the well.
             vec2 e = min(vUv, 1.0 - vUv);
             col *= 0.75 + 0.25 * smoothstep(0.0, 0.12, min(e.x * 2.0, e.y));

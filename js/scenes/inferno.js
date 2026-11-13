@@ -22,6 +22,23 @@ const V_STREAMS = 11;
 // Ember / ash column height above the lava.
 const EMBER_H = 300;
 
+// The ember and ash clocks only ever grow, and a float32 uniform that large
+// would make the particles judder; so each wraps round after a whole number
+// of turns of its shader's swirl — 100 and 80 turns at 0.55 and 0.44 rad per
+// unit for the embers, 200 and 150 at 0.8 and 0.6 for the ash. The shaders
+// round every particle's own rates to whole cycles per wrap (wholeCycles),
+// so nothing jumps when the clock comes round.
+const EMBER_WRAP = (2 * Math.PI * 100) / 0.55;
+const ASH_WRAP = (2 * Math.PI * 200) / 0.8;
+// The ash's sideways drift wraps the field's own width.
+const ASH_W = 1400;
+const WRAP_GLSL = (wrap) => /* glsl */ `
+  const float TAU = 6.2831853;
+  // A rate (cycles per unit of uTime) rounded to whole cycles per wrap.
+  float wholeCycles(float rate) {
+    return floor(rate * ${wrap.toFixed(4)} + 0.5) / ${wrap.toFixed(4)};
+  }`;
+
 /* ----------------------------------------------------------- glsl helpers */
 
 // Cellular noise for the crust plates: (F1, F2 - F1, cell id).
@@ -957,14 +974,16 @@ export default {
       emberGeo,
       new THREE.ShaderMaterial({
         uniforms: emberUniforms,
-        vertexShader: /* glsl */ `
+        vertexShader:
+          WRAP_GLSL(EMBER_WRAP) +
+          /* glsl */ `
           attribute vec3 aExtra;
           uniform float uTime, uFlick, uH, uCount, uBoost, uPixelRatio, uScale;
           uniform vec3 uHot, uCool;
           varying vec3 vColor;
           void main() {
             float ph = position.y;
-            float life = fract(ph + uTime * aExtra.x / uH);
+            float life = fract(ph + uTime * wholeCycles(aExtra.x / uH));
             float y = life * uH;
             vec3 p = vec3(position.x, y - 4.0, position.z);
             // Swirl wider as they climb.
@@ -977,7 +996,7 @@ export default {
               gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
               return;
             }
-            float f = 0.5 + 0.5 * sin(uTime * (4.0 + fract(ph * 7.0) * 10.0) + ph * 80.0);
+            float f = 0.5 + 0.5 * sin(uTime * TAU * wholeCycles((4.0 + fract(ph * 7.0) * 10.0) / TAU) + ph * 80.0);
             f = 0.35 + 0.65 * f * f + uFlick * 0.25;
             float fade = smoothstep(0.0, 0.05, life) * (1.0 - smoothstep(0.35, 1.0, life));
             vColor = mix(uHot, uCool, smoothstep(0.0, 0.7, life)) * f * fade * (1.0 + uBoost);
@@ -1009,7 +1028,7 @@ export default {
     const aPos = new Float32Array(ASH * 3);
     const aExtra = new Float32Array(ASH * 2);
     for (let i = 0; i < ASH; i++) {
-      aPos[i * 3] = (r() - 0.5) * 1400;
+      aPos[i * 3] = (r() - 0.5) * ASH_W;
       aPos[i * 3 + 1] = r();
       aPos[i * 3 + 2] = 40 - r() * 560;
       aExtra[i * 2] = 5 + r() * 9;
@@ -1020,6 +1039,7 @@ export default {
     ashGeo.setAttribute("aExtra", new THREE.BufferAttribute(aExtra, 2));
     const ashUniforms = {
       uTime: { value: 0 },
+      uDrift: { value: 0 },
       uH: { value: 320 },
       uPixelRatio: { value: env.pixelRatio },
       uScale: { value: 800 },
@@ -1030,24 +1050,26 @@ export default {
       ashGeo,
       new THREE.ShaderMaterial({
         uniforms: ashUniforms,
-        vertexShader: /* glsl */ `
+        vertexShader:
+          WRAP_GLSL(ASH_WRAP) +
+          /* glsl */ `
           attribute vec2 aExtra;
-          uniform float uTime, uH, uPixelRatio, uScale;
+          uniform float uTime, uDrift, uH, uPixelRatio, uScale;
           uniform vec3 uAsh, uUnder;
           varying vec3 vColor;
           varying float vAlpha;
           void main() {
             float ph = position.y;
-            float life = fract(ph + uTime * aExtra.x / uH);
+            float life = fract(ph + uTime * wholeCycles(aExtra.x / uH));
             float y = uH * (1.0 - life);
             vec3 p = position;
             p.y = y;
             // Carried by a slow wind, wrapping around.
-            p.x = mod(position.x + uTime * 7.0 + 700.0, 1400.0) - 700.0;
+            p.x = mod(position.x + uDrift + ${(ASH_W / 2).toFixed(1)}, ${ASH_W.toFixed(1)}) - ${(ASH_W / 2).toFixed(1)};
             p.x += sin(uTime * 0.8 + ph * 30.0) * 4.0;
             p.z += cos(uTime * 0.6 + ph * 20.0) * 3.0;
             // Tumbling flakes catch the glow from below now and then.
-            float tumble = 0.5 + 0.5 * sin(uTime * (1.5 + ph * 2.0) + ph * 50.0);
+            float tumble = 0.5 + 0.5 * sin(uTime * TAU * wholeCycles((1.5 + ph * 2.0) / TAU) + ph * 50.0);
             vColor = uAsh * (0.45 + 0.55 * tumble) + uUnder * 0.12 * exp(-y / 60.0);
             vAlpha = 0.55 * smoothstep(0.0, 0.1, life) * (1.0 - smoothstep(0.85, 1.0, life));
             vec4 mv = viewMatrix * vec4(p, 1.0);
@@ -1106,8 +1128,9 @@ export default {
     let lastKick = 0;
     let autoTimer = 2.5;
     let spatter = 0;
-    let emberClock = 0;
-    let ashClock = 0;
+    let emberClock = 0; // wraps at EMBER_WRAP
+    let ashClock = 0; // wraps at ASH_WRAP
+    let ashDrift = 0; // wraps at ASH_W
     let shake = 0;
     // Sanitised copy of the audio info (reused, no per-frame allocation).
     const a = {
@@ -1215,13 +1238,15 @@ export default {
 
         /* particles */
         const rise = (0.75 + a.energy * 0.35 + danger * 0.7) * motion;
-        emberClock += dt * rise;
+        emberClock = (emberClock + dt * rise) % EMBER_WRAP;
         emberUniforms.uTime.value = emberClock;
         emberUniforms.uCount.value = 0.55 + a.energy * 0.2 + danger * 0.25;
         emberUniforms.uBoost.value = a.kick * 0.15 + heat * 0.2;
         emberUniforms.uFlick.value = a.hat;
-        ashClock += dt * motion;
+        ashClock = (ashClock + dt * motion) % ASH_WRAP;
+        ashDrift = (ashDrift + dt * motion * 7) % ASH_W;
         ashUniforms.uTime.value = ashClock;
+        ashUniforms.uDrift.value = ashDrift;
 
         /* camera: slow drift, heat shake when the stack is high */
         const sTarget = env.reducedMotion ? 0 : danger * danger;

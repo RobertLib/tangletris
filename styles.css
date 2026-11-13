@@ -212,7 +212,7 @@ body {
 }
 
 .icon-btn[aria-pressed="false"] {
-  opacity: 0.42;
+  opacity: 0.55;
 }
 
 .icon-btn:focus-visible,
@@ -220,6 +220,25 @@ body {
 .overlay button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* A menu's heading takes the focus when the menu opens, so a screen reader
+   starts there; it is not something to click, so no ring. */
+.overlay h2[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* Read by screen readers, not shown. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* --- Stage layout --------------------------------------------------------- */
@@ -280,6 +299,11 @@ body {
   margin-bottom: 8px;
 }
 
+/* A key to press means nothing on a touch screen. */
+body.touch .panel-title kbd {
+  display: none;
+}
+
 kbd {
   font-family: var(--font-body);
   font-size: 0.68rem;
@@ -331,6 +355,8 @@ kbd {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  /* Numbers shrink to their panel (see .stat-value). */
+  container-type: inline-size;
 }
 
 .stat {
@@ -341,21 +367,32 @@ kbd {
 
 .stat-label {
   font-family: var(--font-display);
-  font-size: 0.44rem;
+  font-size: 0.5rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-dim);
 }
 
+/* --chars is the length of the value (set by js/main.js): a long score in
+   a narrow panel shrinks to fit, a short one keeps the full size. A digit
+   of the body face is about 0.62em wide. */
 .stat-value {
-  font-size: 1.05rem;
+  --size: 1.05rem;
+  font-size: var(--size);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+@supports (width: 1cqi) {
+  .stat-value {
+    font-size: min(var(--size), calc(100cqi / (var(--chars, 1) * 0.62)));
+  }
 }
 
 .stat-hero .stat-value {
-  font-size: 1.55rem;
+  --size: 1.55rem;
   color: var(--accent);
   text-shadow: 0 0 22px var(--accent-soft);
 }
@@ -549,7 +586,7 @@ kbd {
 .result-grid span {
   display: block;
   font-family: var(--font-display);
-  font-size: 0.38rem;
+  font-size: 0.5rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -588,6 +625,36 @@ kbd {
   transform: translateY(1px);
 }
 
+/* The menu's main action stays in view when its card is taller than the
+   board it sits in (a first visit on a small phone): it rides the bottom
+   edge until the card is scrolled down to it. Its padding is cancelled by
+   equal negative margins, so in place it takes no extra room; stuck, it
+   reaches over the overlay's own padding, and a shaded strip (only while
+   the card overflows — .overflowing is set by js/main.js) keeps the text
+   scrolling underneath from showing through. */
+.overlay .main-action {
+  position: sticky;
+  bottom: -12px;
+  z-index: 1;
+  padding: 8px 0 12px;
+  margin: -8px 0 -12px;
+}
+
+.overlay.overflowing .main-action {
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+}
+
+.overlay.overflowing .main-action::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 26px;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--bg) 85%, transparent));
+  pointer-events: none;
+}
+
 .btn-ghost {
   color: var(--text);
   background: transparent;
@@ -621,9 +688,10 @@ body.touch .overlay .hint.keys {
 }
 
 .mode-chip {
-  padding: 7px 10px;
+  min-height: 30px;
+  padding: 7px 11px;
   font-family: var(--font-display);
-  font-size: 0.48rem;
+  font-size: 0.5rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -686,8 +754,9 @@ body.touch .overlay .hint.keys {
 
 /* "Play your own pieces instead": a quiet way out of a friend's deal. */
 .link-btn {
-  margin-top: 2px;
-  padding: 2px 0;
+  display: inline-block;
+  min-height: 30px;
+  padding: 6px 4px;
   font: inherit;
   font-size: 0.7rem;
   color: var(--text-dim);
@@ -723,7 +792,7 @@ body.touch .overlay .hint.keys {
 
 .btn-small {
   padding: 9px 11px;
-  font-size: 0.48rem;
+  font-size: 0.5rem;
 }
 
 .btn-small em {
@@ -929,6 +998,7 @@ body.touch .overlay .hint.keys {
   font-size: 0.78rem;
   color: var(--text);
   white-space: nowrap;
+  max-width: calc(100vw - 24px);
   pointer-events: none;
   opacity: 0;
   transform: translate(-50%, 16px);
@@ -954,6 +1024,13 @@ body.touch .overlay .hint.keys {
   color: var(--accent-2);
 }
 
+/* On a narrow phone a long track title is cut rather than the pill. */
+.now-playing > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* --- Touch controls ------------------------------------------------------- */
 .touchpad {
   display: none;
@@ -961,8 +1038,11 @@ body.touch .overlay .hint.keys {
   z-index: 2;
   max-width: 460px;
   margin: 14px auto 0;
-  padding: 0 16px;
-  grid-template-columns: repeat(6, 1fr);
+  /* Clear of the home indicator in an installed iPhone app. layout() in
+     js/main.js measures this box, so the board shrinks to make room. */
+  padding: 0 16px env(safe-area-inset-bottom, 0px);
+  /* Rotate, the most used button, is the widest. */
+  grid-template-columns: 1fr 1fr 1.3fr 1fr 1fr 1fr;
   gap: 8px;
 }
 
@@ -986,6 +1066,15 @@ body.touch .overlay .hint.keys {
   transform: translateY(2px);
 }
 
+/* SVG, not glyphs: ⟳ and ⤓ come from fallback fonts at odd sizes, or not
+   at all. */
+.ticon {
+  display: block;
+  width: 1.15em;
+  height: 1.15em;
+  margin: 0 auto;
+}
+
 .tbtn-accent {
   color: var(--accent);
   border-color: var(--border-strong);
@@ -1007,9 +1096,9 @@ body.touch .touchpad {
   z-index: 2;
   max-width: 1180px;
   margin: 56px auto 0;
-  padding: 0 20px;
+  padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 18px;
 }
 
@@ -1158,7 +1247,8 @@ body.touch .touchpad {
   position: relative;
   z-index: 2;
   margin-top: 48px;
-  padding: 26px 20px calc(26px + env(safe-area-inset-bottom));
+  padding: 26px max(20px, env(safe-area-inset-right)) calc(26px + env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
   text-align: center;
   font-size: 0.76rem;
   color: var(--text-dim);
@@ -1190,7 +1280,9 @@ body.touch .touchpad {
 /* --- Responsive ----------------------------------------------------------- */
 @media (max-width: 900px) {
   .stage {
-    grid-template-columns: 1fr 1fr;
+    /* minmax(0, …): a column may shrink below its content, or on a 320 px
+       screen the rails push past the edge. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
       "left right"
       "board board";
@@ -1256,7 +1348,7 @@ body.touch .touchpad {
   }
 
   .stat-value {
-    font-size: 0.95rem;
+    --size: 0.95rem;
   }
 
   .panel-score {
@@ -1264,7 +1356,7 @@ body.touch .touchpad {
   }
 
   .stat-hero .stat-value {
-    font-size: 1.25rem;
+    --size: 1.25rem;
   }
 
   .topbar {
@@ -1273,7 +1365,16 @@ body.touch .touchpad {
 
   .info {
     margin-top: 32px;
-    padding: 0 12px;
+    padding: 0 max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+  }
+
+  /* The result tiles are a third of a small board wide: pixel capitals do
+     not fit there, the body face does. */
+  .result-grid span {
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
   }
 
   /* Keep the toast clear of the touch controls. */
@@ -1289,8 +1390,22 @@ body.touch .touchpad {
     display: none;
   }
 
+  /* Logo and toolbar on one row down to ~350 px (narrower, the toolbar
+     wraps under the logo): every pixel of height goes to the board. */
+  .topbar {
+    gap: 8px;
+  }
+
+  .logo {
+    font-size: clamp(0.72rem, 3.5vw, 1rem);
+  }
+
+  .toolbar {
+    gap: 5px;
+  }
+
   .icon-btn {
-    padding: 9px 11px;
+    padding: 8px 9px;
   }
 
   .panel {
@@ -1306,8 +1421,18 @@ body.touch .touchpad {
    LANDSCAPE_* constants mirror the sizes here. */
 body.landscape {
   --cluster-btn: 50px;
-  --cluster-w: calc(var(--cluster-btn) * 2 + 6px + 12px);
+  /* A cluster sits inside the notch's safe area, so it is that much wider. */
+  --cluster-w: calc(
+    var(--cluster-btn) * 2 + 6px + 12px + max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))
+  );
   --rail-w: 112px;
+}
+
+/* Fixed to the screen sideways, the menu and the thumb clusters would float
+   over the info cards once the board is scrolled away. */
+body.landscape.board-away .overlay,
+body.landscape.board-away .touchpad {
+  visibility: hidden;
 }
 
 body.landscape .topbar {
@@ -1410,6 +1535,29 @@ body.landscape.menu-open .previews {
   visibility: hidden;
 }
 
+/* --- The pixel face has a single weight -------------------------------------
+   Headings and <strong> would otherwise get a synthesised bold that smears
+   the 8×8 cells. (Czech labels switch to the body face below and keep their
+   real bold.) */
+:is(
+    .logo,
+    .panel-title,
+    .stat-label,
+    .popup.big,
+    .overlay h2,
+    .overlay .record,
+    .result-grid span,
+    .btn,
+    .mode-chip,
+    .icon-btn,
+    .sheet-head h2,
+    .sheet-group,
+    .now-playing strong,
+    .info-card h2
+  ) {
+  font-weight: 400;
+}
+
 /* --- Czech ------------------------------------------------------------------
    Press Start 2P squeezes accented capitals into its 8×8 cell, so Ř, Š, Í or Ú
    come out looking like lowercase. Czech labels therefore use Space Grotesk;
@@ -1484,5 +1632,12 @@ html[lang="cs"] .info-card h2 {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* The popups' animation ends faded out, so cutting it short would hide
+     them: shown still instead, and removed by script when their time is up. */
+  .popup {
+    animation: none !important;
+    opacity: 1;
   }
 }

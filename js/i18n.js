@@ -59,6 +59,13 @@ const EN = {
   "a11y.hold": "Held piece: {p}",
   "a11y.next": "Next pieces: {p}",
   "a11y.none": "none",
+  "a11y.noneNext": "none",
+  "a11y.modes": "Game mode",
+  "a11y.unlocked": "unlocked",
+  "a11y.locked": "locked",
+  "a11y.progress.level": "Progress to next level",
+  "a11y.progress.sprint": "Lines to the goal",
+  "a11y.progress.daily": "Time used",
 
   "clear.1": "Single",
   "clear.2": "Double",
@@ -79,7 +86,7 @@ const EN = {
   "mode.zen": "Zen",
   "mode.dailyFull": "Daily Tangle #{n}",
   "desc.marathon": "Climb through all six worlds. The odd shapes get more common every level.",
-  "desc.daily": "3 minutes, the same pieces for everyone today. {p} % tangled.",
+  "desc.daily": "3 minutes, the same pieces for everyone today. {p}% tangled.",
   "desc.sprint": "Clear 40 lines as fast as you can.",
   "desc.chaos": "Every odd shape is in the bag from the very first piece.",
   "desc.zen": "No game over, no speed-up — a full stack is swept away. Just the worlds and the music.",
@@ -115,9 +122,9 @@ const EN = {
   "aw.title": "Achievements",
   "aw.count": "{n} of {total} unlocked",
 
-  "share.score": "Tangletris {mode}: {score} points, {lines}, level {level}. Same pieces for you — can you beat it?",
+  "share.score": "Tangletris {mode}: {points}, {lines}, level {level}. Same pieces for you — can you beat it?",
   "share.sprint": "Tangletris Sprint: 40 lines in {time}. Same pieces for you — can you do it faster?",
-  "share.daily": "Tangletris Daily #{n} 🧩\n{score} · {lines} · {p} % tangled",
+  "share.daily": "Tangletris Daily #{n} 🧩\n{score} · {lines} · {p}% tangled",
   "share.streak": "\n🔥 {n}-day streak",
   "share.cardLines": "{lines} · level {level}",
   "share.cardBeat": "Can you beat it?",
@@ -196,6 +203,13 @@ const CS = {
   "a11y.hold": "Odložená kostka: {p}",
   "a11y.next": "Následující kostky: {p}",
   "a11y.none": "žádná",
+  "a11y.noneNext": "žádné",
+  "a11y.modes": "Herní mód",
+  "a11y.unlocked": "získáno",
+  "a11y.locked": "zamčeno",
+  "a11y.progress.level": "Postup do dalšího levelu",
+  "a11y.progress.sprint": "Řady do cíle",
+  "a11y.progress.daily": "Uplynulý čas",
 
   "clear.1": "Řada",
   "clear.2": "Dvě řady",
@@ -227,7 +241,7 @@ const CS = {
   "challenge.score": "Výzva: překonej <strong>{v}</strong> se stejnými kostkami",
   "challenge.time": "Výzva: dokonči rychleji než za <strong>{v}</strong> se stejnými kostkami",
   "challenge.won": "Výzva splněna! 🎉",
-  "challenge.short": "Na výzvu chybělo {d}",
+  "challenge.short": "Na výzvu chybí {d}",
   "challenge.slower": "O {d} pomaleji než výzva",
   "challenge.unfinished": "Výzva nesplněna — zkus to znovu",
   "challenge.deal": "Hraješ se stejnými kostkami jako ve hře, kterou ti někdo poslal",
@@ -252,7 +266,7 @@ const CS = {
   "aw.title": "Úspěchy",
   "aw.count": "Odemčeno {n} z {total}",
 
-  "share.score": "Tangletris {mode}: {score} bodů, {lines}, level {level}. Máš stejné kostky — překonáš to?",
+  "share.score": "Tangletris {mode}: {points}, {lines}, level {level}. Máš stejné kostky — překonáš to?",
   "share.sprint": "Tangletris Sprint: 40 řad za {time}. Máš stejné kostky — dáš to rychleji?",
   "share.daily": "Tangletris Denní #{n} 🧩\n{score} · {lines} · zamotanost {p} %",
   "share.streak": "\n🔥 série {days}",
@@ -300,6 +314,13 @@ function form(n, forms) {
 
 const LINES = { en: ["line", "lines"], cs: ["řada", "řady", "řad"] };
 const DAYS = { en: ["day", "days"], cs: ["den", "dny", "dní"] };
+const POINTS = { en: ["point", "points"], cs: ["bod", "body", "bodů"] };
+
+// 18,430 in English, 18 430 in Czech — the gap a no-break space, so a score
+// never splits across two lines.
+export function fmtNumber(n) {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, LANG === "cs" ? "\u00a0" : ",");
+}
 
 export function linesText(n) {
   return n + " " + form(n, LINES[LANG]);
@@ -307,6 +328,10 @@ export function linesText(n) {
 
 export function daysText(n) {
   return n + " " + form(n, DAYS[LANG]);
+}
+
+export function pointsText(n) {
+  return fmtNumber(n) + " " + form(n, POINTS[LANG]);
 }
 
 export function pieceName(p) {

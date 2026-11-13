@@ -183,6 +183,8 @@ strong {
 .site-header {
   border-bottom: 1px solid var(--line);
   background: rgba(7, 2, 15, 0.55);
+  /* An installed iPhone app draws the page under the status bar. */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 .header-inner {
@@ -594,6 +596,12 @@ samp,
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--panel);
+}
+
+/* Focusable so a keyboard can scroll a wide table on a phone. */
+.table-wrap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 table {

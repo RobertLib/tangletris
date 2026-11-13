@@ -270,7 +270,9 @@ export function hdr(color, intensity) {
 
 export function disposeObject(root) {
   root.traverse((obj) => {
-    if (obj.geometry) obj.geometry.dispose();
+    // Every THREE.Sprite shares one quad geometry (the board's under-glow
+    // is a Sprite too); freeing it would only make it upload again.
+    if (obj.geometry && !obj.isSprite) obj.geometry.dispose();
     // Instance matrices / colours are freed only on the mesh's own dispose
     // event (a buffer shared by several meshes is released just once).
     if (obj.isInstancedMesh) obj.dispose();

@@ -51,6 +51,25 @@ export function normalizeProgress(p) {
   return out;
 }
 
+// Folds another copy (saved by a second tab) into `into`: a piece or an
+// award either copy has is kept, with its earliest date; placings take the
+// higher count.
+export function mergeProgress(into, other) {
+  const o = normalizeProgress(other);
+  for (const k of ["seen", "awards"]) {
+    for (const name in o[k]) {
+      const a = into[k][name];
+      const b = o[k][name];
+      if (b && (!a || b < a)) into[k][name] = b;
+    }
+  }
+  for (const name in o.placed) {
+    const n = +o.placed[name] || 0;
+    if (n > (into.placed[name] || 0)) into.placed[name] = n;
+  }
+  return into;
+}
+
 // Pieces are keyed by name, so reordering the catalogue never scrambles a
 // player's collection.
 export function isSeen(progress, id) {

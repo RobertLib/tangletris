@@ -24,7 +24,7 @@ export const PIECES = [
   { name: "Zigzag", cs: "Cikcak", emoji: "🪜", color: "#38bdf8", weight: 2, cells: [[1, 0], [1, 1], [0, 1], [0, 1]] },
   { name: "Giraffe", cs: "Žirafa", emoji: "🦒", color: "#f97316", weight: 2, cells: [[1, 0], [1, 0], [1, 0], [1, 1]] },
   { name: "Puzzle", cs: "Dílek", emoji: "🧩", color: "#a78bfa", weight: 2, cells: [[1, 1, 0], [0, 1, 1], [0, 1, 0]] },
-  { name: "Arrow", cs: "Šipka", emoji: "➡️", color: "#22d3ee", weight: 2, cells: [[0, 0, 1], [0, 1, 1], [1, 1, 1]] },
+  { name: "Arrow", cs: "Šipka", emoji: "➡️", color: "#7ee36b", weight: 2, cells: [[0, 0, 1], [0, 1, 1], [1, 1, 1]] },
   { name: "Lightning", cs: "Blesk", emoji: "⚡", color: "#facc15", weight: 1, cells: [[1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1]] },
   { name: "Tree", cs: "Strom", emoji: "🌲", color: "#22c55e", weight: 1, cells: [[0, 1, 0], [1, 1, 1], [0, 1, 0], [0, 1, 0]] },
   { name: "Star", cs: "Hvězda", emoji: "⭐", color: "#fde047", weight: 1, cells: [[0, 1, 0], [1, 1, 1], [0, 1, 0], [1, 0, 1]] },

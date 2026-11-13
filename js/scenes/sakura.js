@@ -993,6 +993,11 @@ export default {
     pGeo.setAttribute("aA", new THREE.InstancedBufferAttribute(aA, 4));
     pGeo.setAttribute("aB", new THREE.InstancedBufferAttribute(aB, 4));
     pGeo.setAttribute("aC", new THREE.InstancedBufferAttribute(aC, 4));
+    // The wind, fall, spin and drift only ever grow, and a float32 uniform
+    // that large would make the petals judder; each wraps round at
+    // PETAL_WRAP instead. The shader rounds every petal's rates to whole
+    // crossings (or turns) per wrap, so nothing jumps when one comes round.
+    const PETAL_WRAP = 8192;
     const petalUniforms = {
       uTime: U.uTime,
       uWind: { value: 0 },
@@ -1035,6 +1040,11 @@ export default {
               o * a.x * a.y - a.z * s, o * a.y * a.y + c,       o * a.y * a.z + a.x * s,
               o * a.z * a.x + a.y * s, o * a.y * a.z - a.x * s, o * a.z * a.z + c);
           }
+          const float TAU = 6.2831853;
+          // A rate (cycles per unit) rounded to whole cycles per PETAL_WRAP.
+          float wholeCycles(float rate) {
+            return floor(rate * ${PETAL_WRAP.toFixed(1)} + 0.5) / ${PETAL_WRAP.toFixed(1)};
+          }
           void main() {
             float d = aA.z;
             float hw = d * uTanH;
@@ -1043,7 +1053,7 @@ export default {
             mat3 R;
             if (aC.y > 0.5) {
               // Petals already floating on the lake, turning slowly.
-              float u = fract(aA.x + uDrift / (2.0 * hw));
+              float u = fract(aA.x + uDrift * wholeCycles(0.5 / hw));
               pos = vec3(uCam.x + (u * 2.0 - 1.0) * hw,
                          0.05 + sin(uTime * 0.7 + ph) * 0.03,
                          uCam.z - d);
@@ -1053,14 +1063,14 @@ export default {
               float yLo = -0.4;
               float yHi = uCam.y + d * (uPitch + uTanV);
               float span = yHi - yLo;
-              float u = fract(aA.x + uWind / (2.0 * hw));
-              float v = fract(aA.y - uFall / span);
+              float u = fract(aA.x + uWind * wholeCycles(0.5 / hw));
+              float v = fract(aA.y - uFall * wholeCycles(1.0 / span));
               pos = vec3(uCam.x + (u * 2.0 - 1.0) * hw, yLo + v * span, uCam.z - d);
               // Flutter: little loops on top of the drift.
               pos.x += sin(uTime * aC.w + ph) * 0.5;
               pos.y += cos(uTime * aC.w * 1.3 + ph) * 0.3;
               pos.z += sin(uTime * aC.w * 0.7 + ph * 2.0) * 0.4;
-              R = axisAngle(aB.xyz, uSpin * aB.w + ph)
+              R = axisAngle(aB.xyz, uSpin * TAU * wholeCycles(aB.w / TAU) + ph)
                 * axisAngle(normalize(vec3(1.0, 0.2, 0.0)), sin(uTime * 1.9 + ph) * 0.9);
             }
             // Far petals grow a little so they still read as specks.
@@ -1298,10 +1308,10 @@ export default {
           0.5 + 0.5 * Math.sin(t * 0.21) * Math.sin(t * 0.077 + 1.3) + a.accent * 0.5 + a.intensity * 0.9;
         gust += (gustTarget - gust) * Math.min(1, dt * 1.2);
         danger += (a.intensity - danger) * Math.min(1, dt * 0.8);
-        wind += dt * (1.6 + gust * 2.4 + a.energy * 1.2) * motion;
-        fall += dt * (0.8 + gust * 0.35) * motion;
-        spin += dt * (0.7 + gust * 0.8) * motion;
-        drift += dt * 0.35 * motion;
+        wind = (wind + dt * (1.6 + gust * 2.4 + a.energy * 1.2) * motion) % PETAL_WRAP;
+        fall = (fall + dt * (0.8 + gust * 0.35) * motion) % PETAL_WRAP;
+        spin = (spin + dt * (0.7 + gust * 0.8) * motion) % PETAL_WRAP;
+        drift = (drift + dt * 0.35 * motion) % PETAL_WRAP;
         U.uGust.value = (gust - 0.5) * motion;
         U.uSway.value = (0.4 + danger * 0.5) * (env.reducedMotion ? 0.5 : 1);
 

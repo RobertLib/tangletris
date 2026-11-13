@@ -11,6 +11,8 @@ const MIN = 0.0001;
 // Level of the sound-effects bus (the SFX toggle fades it to 0 and back).
 export const SFX_LEVEL = 0.7;
 const KS_CACHE_MAX = 64; // rendered string notes kept (~0.3–0.5 MB each)
+const DRUM_MAX_SECONDS = 6; // longest drum render (~1.1 MB at 48 kHz)
+const DRUM_TIMEOUT_MS = 8000; // an offline render that has not finished by then never will
 
 // Fire-and-forget a promise-returning context call; a refusal (autoplay
 // policy, iOS interruption) or an old engine that throws must not escape.
@@ -431,7 +433,9 @@ const DRUMS = {
     g.gain.setTargetAtTime(0, 0.01, (p.decay || 1.6) / 4);
     n.connect(hp).connect(pk).connect(g).connect(out);
     n.start(0);
-    n.stop((p.decay || 1.6) * 1.6);
+    // Twice the decay: the wash is ~70 dB down by then (at 1.6 × it was
+    // still -55 dB, and stopped with a step).
+    n.stop((p.decay || 1.6) * 2);
     DRUMS.hat(ctx, out, { decay: (p.decay || 1.6) * 0.5, tune: 1.2, noise: 0.6 });
   },
   brush(ctx, out, p) {
@@ -451,8 +455,30 @@ const DRUMS = {
   },
 };
 
+// The tail past -70 dB is silence: drop it rather than keep it in memory.
+// The last 50 ms fade out, so a sound still ringing when its render ends (a
+// long gong at the length cap) stops smoothly instead of with a step — at
+// most the last quarter, so a click a few ms long keeps its body.
+function finishDrum(buf) {
+  const d = buf.getChannelData(0);
+  let peak = 0;
+  for (let i = 0; i < d.length; i++) peak = Math.max(peak, Math.abs(d[i]));
+  if (!peak) return buf;
+  const floor = peak * 0.0003;
+  let end = d.length;
+  while (end > 1 && Math.abs(d[end - 1]) <= floor) end--;
+  const fade = Math.min(end >> 2, Math.ceil(buf.sampleRate * 0.05));
+  for (let i = 0; i < fade; i++) d[end - fade + i] *= 0.5 + 0.5 * Math.cos((Math.PI * (i + 1)) / fade);
+  if (end === d.length) return buf;
+  const out = new AudioBuffer({ length: end, numberOfChannels: 1, sampleRate: buf.sampleRate });
+  out.copyToChannel(d.subarray(0, end), 0);
+  return out;
+}
+
 async function renderDrum(sampleRate, noise, def) {
-  const seconds = def.length || Math.min(3, (def.decay || 0.5) * 3 + 0.25);
+  // Long enough for the decay to die away (crashes and gongs ring for
+  // seconds); finishDrum() trims what turns out to be silence.
+  const seconds = def.length || Math.min(DRUM_MAX_SECONDS, (def.decay || 0.5) * 3 + 0.25);
   const ctx = new OfflineAudioContext(1, Math.ceil(sampleRate * seconds), sampleRate);
   ctx.__noise = noise;
   const out = ctx.createGain();
@@ -467,7 +493,16 @@ async function renderDrum(sampleRate, noise, def) {
     out.connect(conv).connect(wet).connect(ctx.destination);
   }
   DRUMS[def.type](ctx, out, def);
-  return ctx.startRendering();
+  return finishDrum(await ctx.startRendering());
+}
+
+// Rejects if `promise` has not settled within `ms`.
+function deadline(promise, ms, what) {
+  let timer = 0;
+  const late = new Promise((resolve, reject) => {
+    timer = setTimeout(() => reject(new Error(what + " timed out")), ms);
+  });
+  return Promise.race([promise, late]).finally(() => clearTimeout(timer));
 }
 
 /* ------------------------------------------------------------- the engine */
@@ -517,6 +552,14 @@ export class Engine {
   suspend() {
     const ctx = this.ctx;
     if (ctx && ctx.state !== "closed") quiet(() => ctx.suspend());
+  }
+
+  // Stops the audio thread and starts it again — if `wake()` still agrees
+  // once it has stopped (the page may have been hidden in the meantime).
+  restart(wake) {
+    const ctx = this.ctx;
+    if (!ctx || ctx.state === "closed") return;
+    quiet(() => ctx.suspend().then(() => (wake() ? ctx.resume() : undefined)));
   }
 
   // Separate from ensure() so tests can drive an OfflineAudioContext.
@@ -592,11 +635,23 @@ export class Engine {
 
   /* -- drum kits ------------------------------------------------------- */
 
+  // A voice that fails to render, or whose render never finishes, is left
+  // out: the song plays without it rather than not at all, and the next
+  // song to use it tries again (failed renders are not cached).
   async loadKit(defs) {
     const kit = {};
     const names = Object.keys(defs);
-    const buffers = await Promise.all(names.map((n) => this.drum(defs[n])));
-    names.forEach((n, i) => (kit[n] = { buffer: buffers[i], def: defs[n] }));
+    const buffers = await Promise.all(
+      names.map((n) =>
+        this.drum(defs[n]).catch((e) => {
+          console.warn("Drum " + n + " unavailable:", e);
+          return null;
+        })
+      )
+    );
+    names.forEach((n, i) => {
+      if (buffers[i]) kit[n] = { buffer: buffers[i], def: defs[n] };
+    });
     return kit;
   }
 
@@ -604,11 +659,14 @@ export class Engine {
   // reuses the buffers (AudioBuffers can feed any number of sources).
   drum(def) {
     const key = JSON.stringify(def);
-    let p = this.kitCache.get(key);
+    const cache = this.kitCache;
+    let p = cache.get(key);
     if (!p) {
-      p = renderDrum(this.sampleRate, this.noise, def);
-      this.kitCache.set(key, p);
-      p.catch(() => this.kitCache.delete(key));
+      p = deadline(renderDrum(this.sampleRate, this.noise, def), DRUM_TIMEOUT_MS, "Drum render");
+      cache.set(key, p);
+      p.catch(() => {
+        if (cache.get(key) === p) cache.delete(key);
+      });
     }
     return p;
   }
@@ -701,10 +759,6 @@ export class Engine {
     reverbIn.connect(conv).connect(reverbOut).connect(out);
 
     const delayIn = ctx.createGain();
-    const dl = ctx.createDelay(2);
-    const dr = ctx.createDelay(2);
-    const fb = ctx.createGain();
-    fb.gain.value = d.feedback;
     const lp = ctx.createBiquadFilter();
     lp.type = "lowpass";
     lp.frequency.value = d.tone;
@@ -712,11 +766,43 @@ export class Engine {
     hp.type = "highpass";
     hp.frequency.value = 250;
     const merge = ctx.createChannelMerger(2);
-    delayIn.connect(lp).connect(hp).connect(dl);
-    dl.connect(dr);
-    dr.connect(fb).connect(dl);
-    dl.connect(merge, 0, 0);
-    dr.connect(merge, 0, 1);
+    delayIn.connect(lp).connect(hp);
+    // One ping-pong line: left echo, right echo, back round to the left.
+    // A big tempo jump gets a fresh line (see setDelay), so there may be an
+    // old one still ringing out next to the current one for a while.
+    const lines = [];
+    let line = null;
+    const makeLine = (seconds) => {
+      const send = ctx.createGain();
+      const dl = ctx.createDelay(2);
+      const dr = ctx.createDelay(2);
+      const fb = ctx.createGain();
+      fb.gain.value = d.feedback;
+      dl.delayTime.value = seconds;
+      dr.delayTime.value = seconds;
+      hp.connect(send).connect(dl);
+      dl.connect(dr);
+      dr.connect(fb).connect(dl);
+      dl.connect(merge, 0, 0);
+      dr.connect(merge, 0, 1);
+      const l = {
+        send, seconds,
+        dl, dr,
+        disconnect() {
+          quiet(() => send.disconnect());
+          quiet(() => fb.disconnect());
+          quiet(() => dl.disconnect());
+          quiet(() => dr.disconnect());
+          const i = lines.indexOf(l);
+          if (i !== -1) lines.splice(i, 1);
+        },
+      };
+      lines.push(l);
+      return l;
+    };
+    // How long a retired line keeps ringing: round trips (2 × the delay)
+    // until the feedback has taken the echoes ~70 dB down.
+    const tail = (seconds) => 2 * seconds * (1 + 3.5 / Math.max(0.1, -Math.log10(Math.min(0.95, d.feedback))));
     const delayOut = ctx.createGain();
     delayOut.gain.value = d.level;
     merge.connect(delayOut).connect(out);
@@ -730,9 +816,35 @@ export class Engine {
       tone,
       reverbIn,
       delayIn,
-      setDelay(seconds) {
-        dl.delayTime.setTargetAtTime(seconds, ctx.currentTime, 0.05);
-        dr.delayTime.setTargetAtTime(seconds, ctx.currentTime, 0.05);
+      // Echo time for the steps from `when` on. Moving a delay's read head
+      // bends whatever is in the line: a fast glide drops the echoes in
+      // pitch, a long one even plays them backwards.
+      setDelay(seconds, when) {
+        const at = Math.max(ctx.currentTime, when || 0);
+        if (!line) {
+          line = makeLine(seconds);
+          return;
+        }
+        if (Math.abs(seconds - line.seconds) <= line.seconds * 0.03) {
+          // A level's tempo step (~1 %): glide so slowly that the echoes
+          // bend by a few cents at most.
+          line.dl.delayTime.setTargetAtTime(seconds, at, 1);
+          line.dr.delayTime.setTargetAtTime(seconds, at, 1);
+          line.seconds = seconds;
+          return;
+        }
+        // A jump (a restart from a high level): send new notes into a fresh
+        // line already at the new time, and let the old one's echoes ring
+        // out at the tempo they were played in.
+        const old = line;
+        line = makeLine(seconds);
+        // Closed until `at`: notes before it are the old line's.
+        line.send.gain.value = 0;
+        line.send.gain.setValueAtTime(0, at);
+        line.send.gain.linearRampToValueAtTime(1, at + 0.03);
+        old.send.gain.setValueAtTime(1, at);
+        old.send.gain.linearRampToValueAtTime(0, at + 0.03);
+        setTimeout(() => old.disconnect(), (at - ctx.currentTime + tail(old.seconds) + 1) * 1000);
       },
       disconnect() {
         if (this.gone) return;
@@ -742,12 +854,10 @@ export class Engine {
           out.disconnect();
           reverbIn.disconnect();
           delayIn.disconnect();
-          fb.disconnect();
-          dl.disconnect();
-          dr.disconnect();
         } catch (e) {
           /* already gone */
         }
+        for (const l of lines.slice()) l.disconnect();
         // Its input is cut above, so the convolver can serve another rack.
         eng.releaseConvolver(conv);
       },
@@ -1223,10 +1333,13 @@ const INSTRUMENTS = {
     };
   },
 
-  // Formant choir: detuned saws through three vowel band-passes.
+  // Formant choir: detuned saws through three vowel band-passes. Each voice
+  // has its own vibrato; `oneLfo` (the low quality tier) gives a note's
+  // voices a shared one — one oscillator per note instead of per voice, at
+  // the cost of a little shimmer.
   choir(eng, p, dest) {
     const ctx = eng.ctx;
-    const o = Object.assign({ gain: 0.1, attack: 0.9, release: 1.6, vowel: "a", voices: 3 }, p);
+    const o = Object.assign({ gain: 0.1, attack: 0.9, release: 1.6, vowel: "a", voices: 3, oneLfo: false }, p);
     const VOWELS = {
       a: [[800, 1], [1150, 0.5], [2900, 0.18]],
       o: [[450, 1], [800, 0.45], [2830, 0.1]],
@@ -1250,23 +1363,28 @@ const INSTRUMENTS = {
           bg.gain.value = g * 2.2;
           mix.connect(bp).connect(bg).connect(out);
         }
+        const vibrato = () => {
+          const lfo = ctx.createOscillator();
+          lfo.frequency.value = 4.4 + Math.random();
+          const lg = ctx.createGain();
+          lg.gain.value = 7;
+          lfo.connect(lg);
+          lfo.start(t);
+          lfo.stop(stop);
+          return lg;
+        };
+        const shared = o.oneLfo ? vibrato() : null;
         for (let i = 0; i < o.voices; i++) {
           const osc = ctx.createOscillator();
           osc.type = "sawtooth";
           osc.frequency.value = f;
           osc.detune.value = (i - (o.voices - 1) / 2) * 9 + (Math.random() - 0.5) * 4;
-          const lfo = ctx.createOscillator();
-          lfo.frequency.value = 4.4 + Math.random();
-          const lg = ctx.createGain();
-          lg.gain.value = 7;
-          lfo.connect(lg).connect(osc.detune);
+          (shared || vibrato()).connect(osc.detune);
           const pan = ctx.createStereoPanner();
           pan.pan.value = (i / Math.max(1, o.voices - 1) - 0.5) * 1.2;
           osc.connect(pan).connect(mix);
           osc.start(t);
-          lfo.start(t);
           osc.stop(stop);
-          lfo.stop(stop);
         }
       },
     };

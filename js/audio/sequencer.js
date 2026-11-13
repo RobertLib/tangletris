@@ -8,9 +8,24 @@
 import { parseChord, voiceChord, chordNotes, Ladder, MODES, pitchClass } from "./theory.js";
 import { riser, impact } from "./engine.js";
 
-const LOOKAHEAD = 0.16; // seconds scheduled ahead of the audio clock
+// Seconds scheduled ahead of the audio clock: enough to ride out a main
+// thread stall (a world's shaders compiling, a reverb being built at a
+// level-up) without a late step. Nothing that has to react faster goes
+// through the schedule: muffle and mute act on the buses, and the sound
+// effects ask chordNow() for the chord at the audio clock.
+const LOOKAHEAD = 0.3;
+// A scheduler this far behind the clock (a throttled tab) skips ahead
+// instead of firing every missed step at once.
+const MAX_LATE = 0.25;
 const TICK_MS = 25;
 const VEL = { X: 1, x: 0.82, o: 0.55, "-": 0.3 };
+
+// Energies are written to one decimal place (0.6 → 0.9); their difference
+// carries float noise (0.30000000000000004 one way, 0.29999999999999993
+// the other). A lift of exactly the threshold counts.
+function atLeast(x, min) {
+  return x >= min - 1e-6;
+}
 
 function seeded(seed) {
   let a = seed >>> 0;
@@ -155,14 +170,22 @@ export class Song {
     const eng = this.eng;
     const tr = this.track;
     this.quality = quality || "high";
-    this.rack = eng.createRack({ reverb: tr.reverb, delay: tr.delay });
+    const low = this.quality === "low";
+    let reverb = tr.reverb;
+    // A convolver's cost grows with its impulse: the low tier gets a
+    // smaller room (≤ 3 s instead of the 5–6 s halls).
+    if (low) reverb = Object.assign({}, reverb, { seconds: Math.min(3, (reverb && reverb.seconds) || 2.8) });
+    this.rack = eng.createRack({ reverb, delay: tr.delay });
     this.kit = tr.kit ? await eng.loadKit(tr.kit) : {};
     this.parts = {};
     for (const name in tr.parts) {
       const def = tr.parts[name];
       const strip = eng.createStrip(this.rack, def.strip || {});
       let params = def.params || {};
-      if (this.quality === "low" && params.voices > 3) params = Object.assign({}, params, { voices: 3 });
+      if (low && params.voices > 3) params = Object.assign({}, params, { voices: 3 });
+      // Every choir note is voices × (saw + vibrato): on the low tier two
+      // voices sharing one vibrato.
+      if (low && def.inst === "choir") params = Object.assign({}, params, { voices: Math.min(2, params.voices || 3), oneLfo: true });
       const inst = def.inst ? eng.instrument(def.inst, params, strip.input) : null;
       this.parts[name] = { name, def, strip, inst, prev: null, counter: 0, melody: null };
     }
@@ -199,6 +222,7 @@ export class Song {
     this.rack.out.gain.cancelScheduledValues(when);
     this.rack.out.gain.setValueAtTime(0, when);
     this.rack.out.gain.linearRampToValueAtTime(this.track.level || 1, when + 0.08);
+    this.startTime = when;
     this.nextTime = when;
     this.step = 0; // step inside the current bar
     this.formIndex = 0;
@@ -263,11 +287,14 @@ export class Song {
       }
     }
 
-    if (sec.energy - prevEnergy >= 0.3 && i !== 0) {
+    // One crash per downbeat: a big lift in energy and a section that asks
+    // for one (the final chorus) often coincide; the louder one wins.
+    let crash = sec.crash ? 0.7 : 0;
+    if (atLeast(sec.energy - prevEnergy, 0.3) && i !== 0) {
       this.pushEvent(time, "accent");
-      if (tr.impacts !== false && this.kit.crash) this.hit("crash", time, 0.85, 1, this.drumStrip);
+      if (tr.impacts !== false) crash = 0.85;
     }
-    if (sec.crash && this.kit.crash) this.hit("crash", time, 0.7, 1, this.drumStrip);
+    if (crash && this.kit.crash) this.hit("crash", time, crash, 1, this.drumStrip);
     this.energyTarget = sec.energy;
   }
 
@@ -315,7 +342,9 @@ export class Song {
     if (!this.running) return;
     const ctx = this.eng.ctx;
     // Fell behind (tab throttled): skip ahead rather than machine-gun notes.
-    if (this.nextTime < ctx.currentTime - 0.25) this.nextTime = ctx.currentTime + 0.05;
+    // Normally the next step is up to LOOKAHEAD *ahead* of the clock, so
+    // this only fires after a real stall, not with a long horizon.
+    if (this.nextTime < ctx.currentTime - MAX_LATE) this.nextTime = ctx.currentTime + 0.05;
     this.scheduleUntil(ctx.currentTime + LOOKAHEAD);
   }
 
@@ -323,7 +352,10 @@ export class Song {
     while (this.nextTime < horizon) {
       if (Math.abs(this.bpm - this.lastDelayBpm) > 0.5) {
         this.lastDelayBpm = this.bpm;
-        this.rack.setDelay(this.stepDur * (this.track.delay && this.track.delay.steps ? this.track.delay.steps : 3));
+        // From this step on, not from the clock's now: the steps already
+        // scheduled before it were played at the old tempo.
+        const steps = this.track.delay && this.track.delay.steps ? this.track.delay.steps : 3;
+        this.rack.setDelay(this.stepDur * steps, this.nextTime);
       }
       // A step that throws is dropped, never replayed: the clock always
       // moves on, or every tick would stack the same notes again.
@@ -378,11 +410,12 @@ export class Song {
     const next = this.track.form[this.nextSectionIndex(this.formIndex)];
     const lift = next.energy - sec.energy;
     // Risers into a bigger section.
-    if (lastBar && step === 0 && lift >= 0.25 && this.track.risers !== false) {
+    if (lastBar && step === 0 && atLeast(lift, 0.25) && this.track.risers !== false) {
       riser(this.eng, this.fxStrip.input, time, this.stepDur * 16, 0.22);
     }
-    if (lastBar && step === 12 && lift >= 0.45) impact(this.eng, this.fxStrip.input, time + this.stepDur * 4, 0.35);
+    if (lastBar && step === 12 && atLeast(lift, 0.45)) impact(this.eng, this.fxStrip.input, time + this.stepDur * 4, 0.35);
 
+    const fillBar = lastBar && sec.fill !== false && lift > -0.5;
     for (const name in this.parts) {
       const part = this.parts[name];
       const def = part.def;
@@ -390,26 +423,36 @@ export class Song {
       // high (and the section isn't a quiet one).
       const on = def.danger ? this.dangerOn && sec.energy >= 0.3 : part.active;
       if (!on) continue;
-      switch (def.kind) {
-        case "drums":
-          this.playDrums(part, t, step, bar, lastBar && sec.fill !== false && lift > -0.5);
-          break;
-        case "chords":
-          this.playChords(part, t, step, bar, chord);
-          break;
-        case "bass":
-          this.playBass(part, t, step, bar, chord);
-          break;
-        case "arp":
-          this.playArp(part, t, step, bar, chord);
-          break;
-        case "melody":
-          this.playMelody(part, t, step, bar);
-          break;
-        case "texture":
-          this.playTexture(part, t, step, chord);
-          break;
+      // Each part on its own: one that throws loses its step, not the
+      // parts after it.
+      try {
+        this.playPart(part, t, step, bar, chord, fillBar);
+      } catch (e) {
+        this.fault(e);
       }
+    }
+  }
+
+  playPart(part, t, step, bar, chord, fillBar) {
+    switch (part.def.kind) {
+      case "drums":
+        this.playDrums(part, t, step, bar, fillBar);
+        break;
+      case "chords":
+        this.playChords(part, t, step, bar, chord);
+        break;
+      case "bass":
+        this.playBass(part, t, step, bar, chord);
+        break;
+      case "arp":
+        this.playArp(part, t, step, bar, chord);
+        break;
+      case "melody":
+        this.playMelody(part, t, step, bar);
+        break;
+      case "texture":
+        this.playTexture(part, t, step, chord);
+        break;
     }
   }
 
@@ -585,9 +628,11 @@ export class Song {
 
   /* -- for the sound effects ------------------------------------------- */
 
+  // The chord at the audio clock; before the first step has been scheduled,
+  // the one the song opens with.
   chordNow() {
     const now = this.eng.ctx.currentTime;
-    let c = this.chords.length ? this.chords[0].chord : null;
+    let c = this.chords.length ? this.chords[0].chord : this.section ? this.chordAt(0, 0) : null;
     for (const x of this.chords) if (x.t <= now) c = x.chord;
     return c;
   }

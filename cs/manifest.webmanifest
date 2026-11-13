@@ -19,6 +19,13 @@
   ],
   "screenshots": [
     {
+      "src": "../img/screenshot-narrow-cs.jpg",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "3D deska na mobilu ve světě Neon Drive"
+    },
+    {
       "src": "../og-image.jpg",
       "sizes": "1200x630",
       "type": "image/jpeg",

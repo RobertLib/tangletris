@@ -12,7 +12,7 @@ import { Board, BOARD_W, BOARD_H } from "./view/board.js";
 import { Previews } from "./view/previews.js";
 import { SCENES, JOURNEY, sceneForLevel, loadScene, preloadScenes } from "./scenes/index.js";
 import { Director, trackTitle } from "./audio/index.js";
-import { t, linesText, daysText, pieceName } from "./i18n.js";
+import { t, linesText, daysText, pointsText, fmtNumber, pieceName } from "./i18n.js";
 import {
   DAILY_MS,
   dailyKey,
@@ -40,7 +40,7 @@ const $ = (id) => document.getElementById(id);
 
 const el = {
   gl: $("gl"),
-  previews: $("previews"),
+  previews: [$("previewsHold"), $("previewsNext")],
   boardFrame: $("boardFrame"),
   overlay: $("overlay"),
   overlayCard: $("overlayCard"),
@@ -93,10 +93,17 @@ const prefs = {
 
 function loadPrefs() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    let legacy = false;
+    if (!raw) {
+      raw = localStorage.getItem(LEGACY_KEY);
+      legacy = !!raw;
+    }
     if (raw) {
       const saved = JSON.parse(raw);
       for (const k in prefs) if (k in saved) prefs[k] = saved[k];
+      // Before the modes, every game was a Marathon.
+      if (legacy && !prefs.marathonGames) prefs.marathonGames = +prefs.games || 0;
     }
   } catch (e) {
     /* private mode, corrupted value — defaults are fine */
@@ -111,11 +118,71 @@ function loadPrefs() {
 
 function savePrefs() {
   try {
+    mergeStored();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
   } catch (e) {
     /* nothing we can do, and nothing worth breaking the game over */
   }
 }
+
+// Two open tabs each hold a copy of the records, and the last to save would
+// wipe out what the other achieved. So before writing, fold in whatever was
+// saved meanwhile: the better record, the higher count, every piece and
+// award either tab has seen. The settings stay this tab's own.
+function mergeStored() {
+  let saved;
+  try {
+    saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+  } catch (e) {
+    return;
+  }
+  if (!saved || typeof saved !== "object") return;
+  const max = (a, b) => Math.max(+a || 0, +b || 0);
+  for (const k of ["bestScore", "bestLines", "bestLevel", "games", "marathonGames", "shares"]) {
+    prefs[k] = max(prefs[k], saved[k]);
+  }
+  prefs.bestLevel = prefs.bestLevel || 1;
+
+  if (saved.best && typeof saved.best === "object") {
+    for (const m in saved.best) {
+      const o = saved.best[m];
+      if (!o || typeof o !== "object" || MODES.indexOf(m) === -1) continue;
+      const b = prefs.best[m] || (prefs.best[m] = {});
+      for (const k of ["score", "lines", "level", "games", "runs"]) b[k] = max(b[k], o[k]);
+      // A time is a record when it is lower.
+      if (o.time > 0 && !(b.time > 0 && b.time <= o.time)) b.time = o.time;
+    }
+  }
+
+  const d = prefs.daily;
+  const o = saved.daily;
+  if (o && typeof o === "object") {
+    // Keys are "YYYY-MM-DD", so they compare as strings.
+    if (typeof o.key === "string" && o.key > d.key) {
+      Object.assign(d, { key: o.key, best: +o.best || 0, lines: +o.lines || 0, level: +o.level || 1, plays: +o.plays || 0 });
+    } else if (o.key === d.key) {
+      if (o.best > d.best) Object.assign(d, { best: +o.best, lines: +o.lines || 0, level: +o.level || 1 });
+      d.plays = max(d.plays, o.plays);
+    }
+    if (typeof o.lastKey === "string" && o.lastKey > d.lastKey) {
+      d.lastKey = o.lastKey;
+      d.streak = +o.streak || 0;
+    } else if (o.lastKey === d.lastKey) {
+      d.streak = max(d.streak, o.streak);
+    }
+    d.maxStreak = max(d.maxStreak, o.maxStreak);
+    d.days = max(d.days, o.days);
+  }
+
+  progress.mergeProgress(prefs.progress, saved.progress);
+}
+
+// Another tab saved: show its records here too.
+window.addEventListener("storage", (e) => {
+  if (e.key !== STORAGE_KEY) return;
+  mergeStored();
+  if (overlayKind === "title" && !sheetOpen()) showTitle();
+});
 
 // Records for one mode. Marathon reads and writes the original fields.
 function bestFor(mode) {
@@ -180,9 +247,7 @@ let shareCard = null; // { text, url, blob } ready before Share is pressed
 let captureNext = false;
 let countdownTimer = 0;
 
-function fmt(n) {
-  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-}
+const fmt = fmtNumber;
 
 function pad2(n) {
   return (n < 10 ? "0" : "") + n;
@@ -289,8 +354,13 @@ function startCountdown() {
     }
     const left = msToNextDaily();
     node.textContent = formatCountdown(left);
-    // A new day: the title screen offers the new deal.
-    if (left < 1000 && overlayKind === "title") setTimeout(showTitle, 1500);
+    // A new day: the title screen offers the new deal — if it is still the
+    // title screen by then (a game may have started in the meantime).
+    if (left < 1000 && overlayKind === "title") {
+      setTimeout(() => {
+        if (overlayKind === "title" && state.mode === "title") showTitle();
+      }, 1500);
+    }
   };
   update();
   countdownTimer = setInterval(update, 1000);
@@ -449,13 +519,17 @@ function hudMode() {
   return state.mode === "title" ? selectedMode : runMode;
 }
 
+// A HUD number also tells the CSS its length, so a long one can shrink to
+// fit its panel (see .stat-value).
 function setText(node, text) {
   text = String(text);
-  if (node.textContent !== text) node.textContent = text;
+  if (node.textContent === text) return;
+  node.textContent = text;
+  if (node.classList.contains("stat-value")) node.style.setProperty("--chars", text.length);
 }
 
 function updateHud() {
-  el.score.textContent = fmt(state.score);
+  setText(el.score, fmt(state.score));
   // Only celebrate meaningful jumps — soft drop ticks +1 several times a
   // second and would keep restarting the animation.
   if (state.score - lastScore >= 20 || state.score < lastScore) bumpValue(el.score);
@@ -464,7 +538,7 @@ function updateHud() {
   if (m === "sprint") {
     setText(el.bestLabel, t("stat.time"));
     setText(el.lines, state.lines + "/" + SPRINT_LINES);
-    el.levelFill.style.width = Math.min(1, state.lines / SPRINT_LINES) * 100 + "%";
+    setProgress(Math.min(1, state.lines / SPRINT_LINES), "sprint", state.lines + "/" + SPRINT_LINES);
   } else if (m === "daily") {
     setText(el.bestLabel, t("stat.left"));
     setText(el.lines, state.lines);
@@ -472,7 +546,7 @@ function updateHud() {
     setText(el.bestLabel, t("stat.best"));
     setText(el.best, fmt(Math.max(bestFor(m).score, state.score)));
     setText(el.lines, state.lines);
-    el.levelFill.style.width = ((state.lines % 10) / 10) * 100 + "%";
+    setProgress((state.lines % 10) / 10, "level", (state.lines % 10) + "/10");
   }
   setText(el.level, state.level);
   updateClock();
@@ -485,9 +559,33 @@ function updateClock() {
     setText(el.best, fmtClock(state.time, true));
   } else if (m === "daily") {
     const left = state.mode === "title" ? DAILY_MS : game.timeLeft();
-    setText(el.best, fmtClock(left, false));
-    el.levelFill.style.width = (1 - left / DAILY_MS) * 100 + "%";
+    const shown = fmtClock(left, false);
+    setText(el.best, shown);
+    setProgress(1 - left / DAILY_MS, "daily", shown);
   }
+}
+
+// The bar under the board, and what it means for a screen reader. Written
+// only when something changed: the Daily clock calls this every frame.
+let progressKey = "";
+function setProgress(frac, kind, text) {
+  const pct = Math.round(Math.max(0, Math.min(1, frac)) * 1000) / 10;
+  const key = pct + "|" + kind + "|" + text;
+  if (key === progressKey) return;
+  progressKey = key;
+  el.levelFill.style.width = pct + "%";
+  el.levelTrack.setAttribute("aria-valuenow", String(Math.round(pct)));
+  el.levelTrack.setAttribute("aria-valuetext", text);
+  el.levelTrack.setAttribute("aria-label", t("a11y.progress." + kind));
+}
+
+// Said to screen readers: results, level-ups. The visual popups are not.
+function announce(text) {
+  const node = $("announce");
+  if (!node) return;
+  // Emptied first, so the same words twice in a row are read twice.
+  node.textContent = "";
+  setTimeout(() => (node.textContent = text), 60);
 }
 
 // While paused the queue and the hold are hidden, as the board is behind
@@ -510,7 +608,7 @@ function updatePreviews() {
   const name = (id) => (id === null || id === undefined ? t("a11y.none") : pieceName(PIECES[id]));
   el.holdSlot.setAttribute("aria-label", t("a11y.hold", { p: name(hold) }));
   const next = queue.slice(0, nextCount).map(name);
-  el.nextSlotsBox.setAttribute("aria-label", t("a11y.next", { p: next.length ? next.join(", ") : t("a11y.none") }));
+  el.nextSlotsBox.setAttribute("aria-label", t("a11y.next", { p: next.length ? next.join(", ") : t("a11y.noneNext") }));
 }
 
 function popup(text, frac, color, size, big) {
@@ -530,13 +628,49 @@ function cellPx() {
 
 /* -------------------------------------------------------------- overlays */
 
+// A menu that opens takes the focus to its heading, so a keyboard or screen
+// reader user starts at the top of it. A menu rebuilt in place (a new mode
+// picked, the Pieces sheet closed) keeps the focus on the control it was on
+// instead — the old node is gone, its twin in the new markup gets it.
 function showOverlay(html, kind) {
-  overlayKind = kind || "notice";
+  kind = kind || "notice";
+  const fresh = el.overlay.classList.contains("hidden") || overlayKind !== kind;
+  const active = document.activeElement;
+  let keep = "";
+  if (!fresh && active && el.overlayCard.contains(active) && active.dataset && active.dataset.action) {
+    keep = '[data-action="' + active.dataset.action + '"]';
+    if (active.dataset.mode) keep += '[data-mode="' + active.dataset.mode + '"]';
+  }
+  overlayKind = kind;
   el.overlayCard.innerHTML = html;
   el.overlay.classList.remove("hidden");
-  el.overlay.scrollTop = 0;
+  if (fresh) el.overlay.scrollTop = 0;
   document.body.classList.add("menu-open");
+  updateOverlayFade();
+  const twin = keep && el.overlayCard.querySelector(keep);
+  if (twin) twin.focus({ preventScroll: true });
+  else if (fresh) {
+    const heading = el.overlayCard.querySelector("h2");
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+  }
 }
+
+// A menu's main button, kept in view when the card is taller than the board
+// it sits in (see .main-action in styles.css).
+function mainAction(button) {
+  return '<div class="main-action">' + button + "</div>";
+}
+
+// While part of the card is still below the fold, the main button rides the
+// bottom edge over a shaded strip; scrolled to the end, it sits in place.
+function updateOverlayFade() {
+  const o = el.overlay;
+  o.classList.toggle("overflowing", o.scrollTop + o.clientHeight < o.scrollHeight - 4);
+}
+el.overlay.addEventListener("scroll", updateOverlayFade, { passive: true });
 
 function hideOverlay() {
   overlayKind = "";
@@ -575,7 +709,7 @@ function titleStats(m) {
   return [
     [t("stat.best"), fmt(b.score)],
     [t("stat.lines"), b.lines],
-    m === "chaos" ? [t("stat.level"), b.level] : [t("stat.games"), m === "marathon" ? prefs.games : b.games],
+    m === "chaos" ? [t("stat.level"), b.level] : [t("stat.games"), b.games],
   ];
 }
 
@@ -644,12 +778,12 @@ function showTitle() {
   showOverlay(
     "<h2>Tangletris</h2>" +
       (prefs.games === 0 ? '<p class="sub">' + t("title.sub") + "</p>" : "") +
-      '<div class="modes" role="group">' + chips + "</div>" +
+      '<div class="modes" role="group" aria-label="' + t("a11y.modes") + '">' + chips + "</div>" +
       '<p class="mode-desc">' + desc + "</p>" +
       challengeBanner(m) +
       daily +
       (prefs.games > 0 ? grid(titleStats(m)) : "") +
-      '<button type="button" class="btn" data-action="start">' + t("btn.play") + "</button>" +
+      mainAction('<button type="button" class="btn" data-action="start">' + t("btn.play") + "</button>") +
       menuLinks() +
       '<p class="hint keys">' + t("hint.title") + "</p>",
     "title"
@@ -665,7 +799,7 @@ function showPause() {
         [t("stat.lines"), state.lines],
         [t("stat.level"), state.level],
       ]) +
-      '<button type="button" class="btn" data-action="resume">' + t("btn.resume") + "</button>" +
+      mainAction('<button type="button" class="btn" data-action="resume">' + t("btn.resume") + "</button>") +
       '<div class="btn-row">' +
       '<button type="button" class="btn btn-ghost" data-action="start">' + t("btn.restart") + "</button>" +
       '<button type="button" class="btn btn-ghost" data-action="menu">' + t("btn.menu") + "</button>" +
@@ -723,12 +857,17 @@ function showGameOver() {
 
   showOverlay(
     "<h2>" + heading + "</h2>" + sub + record + grid(cells) + chal + best +
-      (r.mode === "daily" ? share + '<div class="btn-row">' + again + menu + "</div>"
-        : again + '<div class="btn-row">' + share + menu + "</div>") +
+      (r.mode === "daily" ? mainAction(share) + '<div class="btn-row">' + again + menu + "</div>"
+        : mainAction(again) + '<div class="btn-row">' + share + menu + "</div>") +
       '<p class="hint keys">' + t("hint.over") + "</p>",
     "over"
   );
   if (r.mode === "daily") startCountdown();
+  // The heading has the focus; the numbers follow in words.
+  const said = cells.map((c) => c[0] + ": " + c[1]);
+  if (r.record) said.unshift(r.mode === "daily" ? t("over.todayRecord") : t("over.record"));
+  if (r.challenge) said.push(r.challenge.text.replace(/<[^>]+>/g, ""));
+  announce(said.join(". "));
 }
 
 /* ---------------------------------------------------------- the sheet */
@@ -804,8 +943,9 @@ function showAwards() {
     const s = t("aw." + a.id);
     items +=
       '<li class="award' + (got ? "" : " locked") + '"><span class="award-icon" aria-hidden="true">' + a.icon +
-      "</span><div><strong>" + esc(s[0]) + "</strong><span>" + esc(s[1]) + "</span></div>" +
-      (got ? '<span class="award-check" aria-label="✓">✓</span>' : "") + "</li>";
+      "</span><div><strong>" + esc(s[0]) + "</strong><span>" + esc(s[1]) + "</span>" +
+      '<span class="sr-only">' + (got ? t("a11y.unlocked") : t("a11y.locked")) + "</span></div>" +
+      (got ? '<span class="award-check" aria-hidden="true">✓</span>' : "") + "</li>";
   }
   openSheet(
     sheetHead(t("aw.title"), t("aw.count", { n: progress.awardCount(pr), total: progress.ACHIEVEMENTS.length })) +
@@ -826,7 +966,12 @@ el.overlay.addEventListener("click", (e) => {
     startGame();
   } else if (action === "resume") game.togglePause();
   else if (action === "reload") location.reload();
-  else if (action === "mode") selectMode(btn.dataset.mode);
+  else if (action === "mode") {
+    // Enter (or Space) on the mode already picked is "play it": a chip
+    // keeps the focus once clicked, and Enter is the hint's start key.
+    if (btn.dataset.mode === selectedMode && e.detail === 0) startGame();
+    else selectMode(btn.dataset.mode);
+  }
   else if (action === "menu") toMenu();
   else if (action === "share") doShare();
   else if (action === "dropChallenge") dropChallenge();
@@ -957,7 +1102,8 @@ function onRunEnd() {
       else if (r.result === "goal") text = t("challenge.slower", { d: fmtClock(r.time - beat, true) });
       else text = t("challenge.unfinished");
     } else if (r.score > beat) won = true;
-    else text = t("challenge.short", { d: fmt(beat - r.score) });
+    // Beating means more, so a tie is still a point short (not "0 short").
+    else text = t("challenge.short", { d: pointsText(Math.max(1, beat - r.score)) });
     r.challenge = { won: won, text: won ? t("challenge.won") : text };
     if (won) award(["challenge"]);
   }
@@ -981,7 +1127,7 @@ function onRunEnd() {
     big = fmtClock(r.time, true);
     small = t("over.sprintShort", { n: SPRINT_LINES }) + " · " + fmt(r.score);
   } else {
-    text = t("share.score", { mode: t("mode." + m), score: fmt(r.score), lines: linesText(r.lines), level: r.level });
+    text = t("share.score", { mode: t("mode." + m), points: pointsText(r.score), lines: linesText(r.lines), level: r.level });
     if (m !== "sprint") beat = r.score;
   }
   shareCard = {
@@ -1085,6 +1231,7 @@ game.on("levelUp", (l) => {
   audio.levelUp();
   audio.setLevel(l.level);
   popup(t("pop.level", { n: l.level }), 0.18, palette.accent, Math.max(14, cellPx() * 0.55), true);
+  announce(t("pop.level", { n: l.level }));
   award(progress.awardsForLevel(l.level, runMode));
   syncScene(true);
 });
@@ -1478,9 +1625,23 @@ const MAX_CELL = 36;
 let layoutQueued = false;
 
 // Phone held sideways (see body.landscape in styles.css): per side, a thumb
-// cluster of the touch pad and a rail sit beside the board.
-const LANDSCAPE_CLUSTER = 124;
+// cluster of the touch pad and a rail sit beside the board. The clusters
+// are measured (they grow by the notch's safe area); this is the fallback.
+const LANDSCAPE_CLUSTER = 118 + 6;
 const LANDSCAPE_RAIL = 112 + 12;
+
+// Room for the board and its rails between the two thumb clusters. The
+// stage is centred on the screen, so it gets twice the narrower side.
+function landscapeRoom() {
+  const w = window.innerWidth;
+  const inner = el.touchpad.querySelector('[data-touch="right"]');
+  const outer = el.touchpad.querySelector('[data-touch="drop"]');
+  const a = inner && inner.getBoundingClientRect();
+  const b = outer && outer.getBoundingClientRect();
+  if (!a || !b || !a.width || !b.width) return w - 2 * LANDSCAPE_CLUSTER;
+  const gap = 6;
+  return 2 * Math.min(w / 2 - (a.right + gap), b.left - gap - w / 2);
+}
 
 function applyCellSize(c, mode) {
   const root = document.documentElement.style;
@@ -1524,7 +1685,7 @@ function layout() {
   let maxW;
   let maxH;
   if (mode === "landscape") {
-    maxW = window.innerWidth - 2 * (LANDSCAPE_CLUSTER + LANDSCAPE_RAIL);
+    maxW = landscapeRoom() - 2 * LANDSCAPE_RAIL;
     maxH = window.innerHeight - 60;
   } else {
     const wide = mode === "wide";
@@ -1550,6 +1711,7 @@ function layout() {
     document.documentElement.style.setProperty("--top-h", top + "px");
   }
   if (previews) updatePreviews();
+  updateOverlayFade();
 }
 
 function scheduleLayout() {
@@ -1563,6 +1725,19 @@ function scheduleLayout() {
 
 window.addEventListener("resize", scheduleLayout);
 window.addEventListener("orientationchange", () => setTimeout(scheduleLayout, 250));
+
+// Sideways, the menu and the thumb clusters are fixed to the screen; once
+// the board is scrolled mostly out of view (reading the info cards) they
+// step aside — see body.board-away in styles.css.
+if ("IntersectionObserver" in window) {
+  new IntersectionObserver(
+    (entries) => {
+      const e = entries[entries.length - 1];
+      document.body.classList.toggle("board-away", !e.isIntersecting || e.intersectionRatio < 0.3);
+    },
+    { threshold: [0, 0.3] }
+  ).observe(el.boardFrame);
+}
 if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleLayout);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleLayout);
 
@@ -1596,13 +1771,20 @@ function tick(now) {
   const slotRects = previews.measure();
 
   if (!last) last = now;
+  // The real time since the last frame runs the Sprint and Daily clocks: a
+  // device that stalls (a world loading, a GC) gets no free time. Capped at
+  // a second for a machine that slept without hiding the page (hiding it
+  // pauses the game).
+  const realMs = Math.max(0, Math.min(1000, now - last));
   let dt = (now - last) / 1000;
   last = now;
-  if (dt > 0.1) dt = 0.1; // tab was backgrounded — don't fast-forward
+  // Everything else moves by at most a tenth of a second per frame, so a
+  // hitch never teleports a piece or kicks the board's springs.
+  if (dt > 0.1) dt = 0.1;
   if (dt < 0) dt = 0;
   clock += dt;
 
-  game.update(dt * 1000, now);
+  game.update(dt * 1000, now, realMs);
   if (state.mode === "playing") updateClock();
   audio.setIntensity(state.mode === "playing" ? game.danger() : 0);
   audio.update(dt);
@@ -1675,8 +1857,10 @@ async function boot() {
   el.motionBtn.setAttribute("aria-pressed", String(prefs.motion));
   el.sfxBtn.setAttribute("aria-pressed", String(prefs.sfx));
   el.musicBtn.setAttribute("aria-pressed", String(prefs.music));
-  audio.setSfxEnabled(prefs.sfx);
+  // Music first: setting the effects already picks the iOS audio session
+  // type, which depends on whether music is on.
   audio.musicOn = prefs.music;
+  audio.setSfxEnabled(prefs.sfx);
   updateSceneLabel();
   if (window.matchMedia("(pointer: coarse)").matches) document.body.classList.add("touch");
 

@@ -16,6 +16,9 @@ export default {
 
     const camera = new THREE.PerspectiveCamera(58, 1, 0.5, 4000);
     const hi = env.quality === "high";
+    // Reduced motion slows everything that travels — the road, the sun's
+    // stripes, the floating solids and the camera — like the other worlds.
+    const motion = env.reducedMotion ? 0.3 : 1;
     const r = rng(42);
 
     /* -- sky ------------------------------------------------------------- */
@@ -39,7 +42,7 @@ export default {
 
     /* -- sun ------------------------------------------------------------- */
     const sunUniforms = {
-      uTime: { value: 0 },
+      uStripes: { value: 0 }, // the stripes' phase, 0..1
       uPulse: { value: 0 },
       uTop: { value: hdr("#ffc93c", 1.0) },
       uBottom: { value: hdr("#ff1f7a", 1.05) },
@@ -55,7 +58,7 @@ export default {
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }`,
         fragmentShader: /* glsl */ `
-          uniform float uTime, uPulse;
+          uniform float uStripes, uPulse;
           uniform vec3 uTop, uBottom;
           varying vec2 vUv;
           void main() {
@@ -63,7 +66,7 @@ export default {
             vec3 col = mix(uBottom, uTop, smoothstep(0.2, 1.0, y));
             // The classic stripes: gaps get wider towards the bottom and
             // slide downwards forever.
-            float band = fract(y * 16.0 + uTime * 0.35);
+            float band = fract(y * 16.0 + uStripes);
             float gap = smoothstep(0.78, 0.05, y) * 0.7;
             if (gap > 0.06 && band < gap) discard;
             col *= 1.0 + uPulse * 0.25;
@@ -246,13 +249,16 @@ export default {
       update(t, dt, a) {
         const target = 62 + a.energy * 40 + a.intensity * 30;
         speed += (target - speed) * Math.min(1, dt * 0.8);
-        scroll += dt * speed * (env.reducedMotion ? 0.3 : 1);
+        scroll += dt * speed * motion;
         if (scroll >= SCROLL_WRAP) scroll -= SCROLL_WRAP;
+        const ct = t * motion;
 
         terrainUniforms.uScroll.value = scroll;
         terrainUniforms.uGridScroll.value = scroll % GRID;
         terrainUniforms.uPulse.value = a.kick * 0.9;
-        sunUniforms.uTime.value = t;
+        // One stripe every 1/0.35 s: only the phase within a stripe goes to
+        // the GPU, so it stays exact however long the world runs.
+        sunUniforms.uStripes.value = (ct * 0.35) % 1;
         sunUniforms.uPulse.value = a.kick;
         sunGlow.material.opacity = 0.14 + a.kick * 0.06 + a.chord * 0.04;
         stars.material.uniforms.uTime.value = t;
@@ -273,19 +279,19 @@ export default {
         pylonMat.color.copy(pylonColor).multiplyScalar(1.4 + a.snare * 1.6);
 
         for (const s of solids) {
-          s.obj.rotation.x = s.phase + t * s.spin.x;
-          s.obj.rotation.y = s.phase * 2 + t * s.spin.y;
-          s.obj.rotation.z = t * s.spin.z;
+          s.obj.rotation.x = s.phase + ct * s.spin.x;
+          s.obj.rotation.y = s.phase * 2 + ct * s.spin.y;
+          s.obj.rotation.z = ct * s.spin.z;
           s.obj.position.set(
             s.base.x,
-            s.base.y + Math.sin(t * 0.4 + s.phase) * 6,
+            s.base.y + Math.sin(ct * 0.4 + s.phase) * 6,
             s.base.z
           );
           s.obj.scale.setScalar(s.scale * (1 + a.chord * 0.08));
         }
 
-        camera.position.set(Math.sin(t * 0.13) * 3, 15 + Math.sin(t * 0.31) * 0.6, 40);
-        camera.lookAt(Math.sin(t * 0.09) * 6, 4, -400);
+        camera.position.set(Math.sin(ct * 0.13) * 3, 15 + Math.sin(ct * 0.31) * 0.6, 40);
+        camera.lookAt(Math.sin(ct * 0.09) * 6, 4, -400);
       },
       dispose() {
         for (const g of solidGeos) g.dispose();

@@ -156,8 +156,8 @@ then open http://localhost:8000/.
 Two harnesses help when working on the worlds and the music:
 
 - `dev/scene.html?scene=ocean&t=10` renders one world on its own with a
-  stand-in board and a fake beat (`energy`, `intensity`, `bpm` and
-  `quality=low` are also accepted)
+  stand-in board and a fake beat (`energy`, `intensity`, `bpm`,
+  `quality=low` and `reduced=1` are also accepted)
 - `dev/audio.html?track=cosmos&secs=60` renders a soundtrack offline, reports
   its loudness and spectrum and offers it as a WAV download (`solo=pad,bass`
   isolates parts)

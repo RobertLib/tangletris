@@ -9,7 +9,7 @@
     <title>Tangletris — 3D Tetris With Weird Shapes | Free Browser Game</title>
     <meta
       name="description"
-      content="Tangletris is a free 3D browser puzzle game: classic Tetris pieces tangled with weird shapes, on a tilting playfield in front of six animated worlds, each with its own generative soundtrack. No downloads, plays on mobile."
+      content="Free 3D Tetris-style browser game: classic pieces tangled with weird shapes, six animated worlds with live-composed music, a Daily Tangle and challenges. Plays on mobile."
     />
     <meta name="author" content="Robert Libsansky" />
     <meta name="theme-color" content="#0c0620" />
@@ -38,6 +38,8 @@
       content="Tangletris: a glossy 3D Tetris board in front of a cherry-blossom lake at twilight"
     />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tangletris — 3D Tetris With Weird Shapes" />
+    <meta name="twitter:description" content="A free 3D browser puzzle game where classic tetrominoes get tangled with hearts, stars, rockets and other odd blocks — six animated worlds, a Daily Tangle and challenge links for your friends." />
     <meta name="twitter:image" content="https://robertlib.github.io/tangletris/og-image.jpg" />
 
     <script type="importmap">
@@ -212,15 +214,24 @@
       <div class="board-wrap">
         <div class="board-frame" id="boardFrame">
           <div class="popups" id="popups" aria-hidden="true"></div>
-          <div class="overlay" id="overlay" aria-live="polite">
+          <div class="overlay" id="overlay">
             <div class="overlay-card" id="overlayCard">
               <h2>Tangletris</h2>
-              <p class="sub" id="loadingText">Building the worlds…</p>
+              <p class="sub" id="loadingText" role="status">Building the worlds…</p>
             </div>
           </div>
         </div>
 
-        <div class="level-track" title="Progress to next level">
+        <div
+          class="level-track"
+          id="levelTrack"
+          role="progressbar"
+          aria-label="Progress to next level"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+          title="Progress to next level"
+        >
           <div class="level-fill" id="levelFill"></div>
         </div>
       </div>
@@ -250,16 +261,17 @@
     </main>
 
     <div class="now-playing" id="nowPlaying" aria-live="polite"></div>
+    <p class="sr-only" id="announce" aria-live="polite"></p>
 
     <!-- Pieces collection and achievements open here. -->
     <dialog class="sheet" id="sheet" aria-label="Collection"></dialog>
 
     <div class="touchpad" id="touchpad" role="group" aria-label="Touch controls">
       <button type="button" class="tbtn" data-touch="hold" aria-label="Hold">
-        ⇄
+        <svg class="ticon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button type="button" class="tbtn" data-touch="left" aria-label="Left">
-        ◀
+        <svg class="ticon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 4.5v15L6 12z" fill="currentColor"/></svg>
       </button>
       <button
         type="button"
@@ -267,13 +279,13 @@
         data-touch="rotate"
         aria-label="Rotate"
       >
-        ⟳
+        <svg class="ticon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1L20.5 8.5M20.5 3.5v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <button type="button" class="tbtn" data-touch="right" aria-label="Right">
-        ▶
+        <svg class="ticon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.5v15L18 12z" fill="currentColor"/></svg>
       </button>
       <button type="button" class="tbtn" data-touch="down" aria-label="Soft drop">
-        ▼
+        <svg class="ticon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7.5h15L12 18z" fill="currentColor"/></svg>
       </button>
       <button
         type="button"
@@ -281,11 +293,11 @@
         data-touch="drop"
         aria-label="Hard drop"
       >
-        ⤓
+        <svg class="ticon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v13M6 10.5l6 6 6-6M5 21h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
 
-    <section class="info">
+    <section class="info" aria-label="About Tangletris">
       <article class="info-card">
         <h2>What is Tangletris?</h2>
         <p>
@@ -448,7 +460,8 @@
     </footer>
 
     <!-- Hold / Next previews sit above the frosted panels. -->
-    <canvas id="previews" class="previews" aria-hidden="true"></canvas>
+    <canvas id="previewsHold" class="previews" aria-hidden="true"></canvas>
+    <canvas id="previewsNext" class="previews" aria-hidden="true"></canvas>
 
     <noscript>
       <p style="text-align: center; padding: 2rem">
