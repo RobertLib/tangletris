@@ -61,7 +61,9 @@ export class Previews {
 
   buildEnvironment() {
     const pmrem = new THREE.PMREMGenerator(this.renderer);
-    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    const room = new RoomEnvironment();
+    this.scene.environment = pmrem.fromScene(room, 0.04).texture;
+    room.dispose();
     pmrem.dispose();
   }
 
@@ -116,8 +118,14 @@ export class Previews {
     return { x: ox, y: oy };
   }
 
-  render(t, dt) {
-    const rects = this.slots.map((s) => s.el.getBoundingClientRect());
+  // The slots' rectangles. The page reads them at the start of its frame,
+  // before any DOM writes, and passes them to render().
+  measure() {
+    return this.slots.map((s) => s.el.getBoundingClientRect());
+  }
+
+  render(t, dt, rects) {
+    rects = rects || this.measure();
     const origin = this.fit(rects);
     if (!origin) return;
     const r = this.renderer;

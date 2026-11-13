@@ -8,6 +8,8 @@ import { mtof } from "./theory.js";
 /* ---------------------------------------------------------------- helpers */
 
 const MIN = 0.0001;
+// Level of the sound-effects bus (the SFX toggle fades it to 0 and back).
+export const SFX_LEVEL = 0.7;
 const KS_CACHE_MAX = 64; // rendered string notes kept (~0.3–0.5 MB each)
 
 // Fire-and-forget a promise-returning context call; a refusal (autoplay
@@ -525,6 +527,8 @@ export class Engine {
     this.ksCache = new Map();
     this.kitCache = new Map();
     this.irCache = new Map();
+    this.convPool = new Map();
+    this.convKeys = new WeakMap();
 
     // Master: glue compressor → brick-wall limiter.
     this.master = ctx.createGain();
@@ -554,7 +558,7 @@ export class Engine {
     this.musicBus = this.musicFilter;
 
     this.sfxBus = ctx.createGain();
-    this.sfxBus.gain.value = 0.7;
+    this.sfxBus.gain.value = SFX_LEVEL;
     this.sfxBus.connect(this.master);
     const sfxVerb = ctx.createConvolver();
     sfxVerb.buffer = this.impulse({ seconds: 1.8, decay: 3, damp: 0.6 });
@@ -620,6 +624,30 @@ export class Engine {
     return buf;
   }
 
+  // Giving a ConvolverNode its impulse prepares the whole room on the main
+  // thread — tens of milliseconds on a phone for a 6 s hall, at every song
+  // start. A world's songs all use the same room, so racks hand their
+  // convolver back when they are torn down and the next song takes it.
+  takeConvolver(opts) {
+    const key = JSON.stringify(opts);
+    const free = this.convPool.get(key);
+    if (free && free.length) return free.pop();
+    const conv = this.ctx.createConvolver();
+    conv.buffer = this.impulse(opts);
+    this.convKeys.set(conv, key);
+    return conv;
+  }
+
+  releaseConvolver(conv) {
+    quiet(() => conv.disconnect());
+    const key = this.convKeys.get(conv);
+    if (key === undefined) return;
+    const list = this.convPool.get(key) || [];
+    // Two per room covers a crossfade between two songs of one world.
+    if (list.length < 2 && list.indexOf(conv) === -1) list.push(conv);
+    this.convPool.set(key, list);
+  }
+
   playSample(buffer, t, dest, vel, rate) {
     const src = this.ctx.createBufferSource();
     src.buffer = buffer;
@@ -665,9 +693,9 @@ export class Engine {
     tone.frequency.value = 20000;
     out.connect(tone).connect(this.musicBus);
 
+    const eng = this;
     const reverbIn = ctx.createGain();
-    const conv = ctx.createConvolver();
-    conv.buffer = this.impulse(r);
+    const conv = this.takeConvolver(r);
     const reverbOut = ctx.createGain();
     reverbOut.gain.value = r.level;
     reverbIn.connect(conv).connect(reverbOut).connect(out);
@@ -707,6 +735,8 @@ export class Engine {
         dr.delayTime.setTargetAtTime(seconds, ctx.currentTime, 0.05);
       },
       disconnect() {
+        if (this.gone) return;
+        this.gone = true;
         try {
           tone.disconnect();
           out.disconnect();
@@ -718,6 +748,8 @@ export class Engine {
         } catch (e) {
           /* already gone */
         }
+        // Its input is cut above, so the convolver can serve another rack.
+        eng.releaseConvolver(conv);
       },
     };
   }

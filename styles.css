@@ -682,6 +682,24 @@ body.touch .overlay .hint.keys {
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
+/* "Play your own pieces instead": a quiet way out of a friend's deal. */
+.link-btn {
+  margin-top: 2px;
+  padding: 2px 0;
+  font: inherit;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.link-btn:hover {
+  color: var(--text);
+}
+
 .btn-row {
   display: flex;
   justify-content: center;
@@ -1276,6 +1294,118 @@ body.touch .touchpad {
   .panel {
     padding: 7px 8px;
   }
+}
+
+/* --- Phone held sideways ----------------------------------------------------
+   Too short for a HUD row above the board and a touch pad below it. The
+   rails go back beside the board, the pad splits into two thumb clusters in
+   the bottom corners, and the menus open over the middle of the screen
+   instead of inside the (small) board. Set by layout() in js/main.js, whose
+   LANDSCAPE_* constants mirror the sizes here. */
+body.landscape {
+  --cluster-btn: 50px;
+  --cluster-w: calc(var(--cluster-btn) * 2 + 6px + 12px);
+  --rail-w: 112px;
+}
+
+body.landscape .topbar {
+  max-width: none;
+  padding: calc(6px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 4px
+    calc(12px + env(safe-area-inset-left));
+  flex-wrap: nowrap;
+}
+
+body.landscape .logo {
+  font-size: 0.9rem;
+}
+
+body.landscape .btn-label {
+  display: none;
+}
+
+body.landscape .icon-btn {
+  padding: 7px 10px;
+}
+
+body.landscape .stage {
+  grid-template-columns: var(--rail-w) auto var(--rail-w);
+  grid-template-areas: "left board right";
+  gap: 12px;
+  padding: 0;
+  align-items: start;
+}
+
+body.landscape .board-wrap {
+  gap: 6px;
+}
+
+body.landscape .rail,
+body.landscape .rail-right {
+  flex-direction: column;
+  gap: 8px;
+}
+
+body.landscape .slots {
+  flex-direction: column;
+}
+
+body.landscape .slots .slot:nth-child(n + 2) {
+  width: var(--slot-w);
+  height: calc(var(--slot-h) * 0.82);
+}
+
+body.landscape .touchpad {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  max-width: none;
+  margin: 0;
+  padding: 0 calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left));
+  grid-template-columns: var(--cluster-btn) var(--cluster-btn) 1fr var(--cluster-btn) var(--cluster-btn);
+  grid-template-areas:
+    "hold down . drop rotate"
+    "left right . drop rotate";
+  gap: 6px;
+  pointer-events: none;
+}
+
+body.landscape .tbtn {
+  height: var(--cluster-btn);
+  padding: 0;
+  pointer-events: auto;
+}
+
+body.landscape [data-touch="hold"] {
+  grid-area: hold;
+}
+body.landscape [data-touch="down"] {
+  grid-area: down;
+}
+body.landscape [data-touch="left"] {
+  grid-area: left;
+}
+body.landscape [data-touch="right"] {
+  grid-area: right;
+}
+body.landscape [data-touch="drop"] {
+  grid-area: drop;
+  height: auto;
+}
+body.landscape [data-touch="rotate"] {
+  grid-area: rotate;
+  height: auto;
+}
+
+body.landscape .overlay {
+  position: fixed;
+  inset: var(--top-h, 48px) var(--cluster-w) calc(8px + env(safe-area-inset-bottom));
+}
+
+/* The 3D previews are drawn on a canvas above the page; with a menu over
+   the rails they would float on top of it. */
+body.landscape.menu-open .previews {
+  visibility: hidden;
 }
 
 /* --- Czech ------------------------------------------------------------------

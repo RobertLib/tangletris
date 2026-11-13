@@ -51,6 +51,7 @@ const EN = {
   "gfx.text": "The browser switched off the 3D graphics. Reload to carry on — your best score is saved.",
   "webgl.text":
     "This game draws its worlds with WebGL 2, which this browser or device does not provide. Try a current Chrome, Firefox, Safari or Edge, or enable hardware acceleration.",
+  "load.text": "The game could not load its worlds. Check your connection and reload.",
 
   "scene.journey": "Journey",
 
@@ -87,6 +88,8 @@ const EN = {
   "challenge.short": "{d} short of the challenge",
   "challenge.slower": "{d} slower than the challenge",
   "challenge.unfinished": "Challenge not beaten — try again",
+  "challenge.deal": "You are playing the same pieces as the game that was shared with you",
+  "challenge.drop": "Play your own pieces instead",
 
   "toast.piece": "New piece",
   "toast.award": "Achievement",
@@ -181,6 +184,7 @@ const CS = {
   "gfx.text": "Prohlížeč vypnul 3D grafiku. Načti stránku znovu — tvůj rekord zůstane uložený.",
   "webgl.text":
     "Hra kreslí své světy pomocí WebGL 2, které tento prohlížeč nebo zařízení nepodporuje. Zkus aktuální Chrome, Firefox, Safari nebo Edge, případně zapni hardwarovou akceleraci.",
+  "load.text": "Hře se nepodařilo načíst světy. Zkontroluj připojení a načti stránku znovu.",
 
   "scene.journey": "Cesta",
 
@@ -217,6 +221,8 @@ const CS = {
   "challenge.short": "Na výzvu chybělo {d}",
   "challenge.slower": "O {d} pomaleji než výzva",
   "challenge.unfinished": "Výzva nesplněna — zkus to znovu",
+  "challenge.deal": "Hraješ se stejnými kostkami jako ve hře, kterou ti někdo poslal",
+  "challenge.drop": "Hrát raději vlastní kostky",
 
   "toast.piece": "Nový tvar",
   "toast.award": "Úspěch",

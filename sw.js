@@ -10,7 +10,7 @@
    js/main.js), so the first visit already fills the cache.
    ========================================================================== */
 
-const CACHE = "tangletris-v1";
+const CACHE = "tangletris-v2";
 const CDN = "https://cdn.jsdelivr.net/";
 const SHELL = ["./", "./cs/", "./styles.css", "./manifest.webmanifest", "./icon.svg"];
 
@@ -34,6 +34,16 @@ self.addEventListener("activate", (event) => {
 
 function cacheable(url) {
   return url.startsWith(self.location.origin) || url.startsWith(CDN);
+}
+
+// A page is kept once, under its address without the query: every challenge
+// link (?mode=…&seed=…) is the same page, and must not pile up a copy each.
+function pageKey(req) {
+  if (req.mode !== "navigate") return req;
+  const u = new URL(req.url);
+  u.search = "";
+  u.hash = "";
+  return u.href;
 }
 
 self.addEventListener("message", (event) => {
@@ -84,15 +94,17 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(req)
       .then((res) => {
-        if (res.ok && res.type === "basic") {
+        // A redirected response cannot answer a navigation later (Safari
+        // refuses it), so only the final page is kept.
+        if (res.ok && res.type === "basic" && !res.redirected) {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
+          caches.open(CACHE).then((c) => c.put(pageKey(req), copy));
         }
         return res;
       })
       .catch(() =>
         // Offline. A page opened with ?mode=… still finds the cached page.
-        caches.match(req, { ignoreSearch: req.mode === "navigate" }).then((hit) => {
+        caches.match(pageKey(req)).then((hit) => {
           if (hit) return hit;
           if (req.mode === "navigate") return caches.match("./");
           return Response.error();

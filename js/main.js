@@ -154,6 +154,11 @@ function bestFor(mode) {
 
 /* ----------------------------------------------------------------- state */
 
+// True once the 3D side is up and the first world is on screen.
+function booted() {
+  return !!(stage && board && previews && stage.def);
+}
+
 let stage = null;
 let board = null;
 let previews = null;
@@ -326,9 +331,15 @@ function applyPalette(def, instant) {
 
 // Worlds load lazily: a world whose code has not arrived yet is fetched
 // first, and the switch happens when it lands — unless the target moved on.
+// Compared with where the stage is heading, not what it shows: mid-wipe the
+// two differ, and turning back to the world on screen must cancel the wipe.
+// The music follows the world that will actually be shown, so a world that
+// failed to load does not leave its soundtrack playing over another one.
+// Returns whether a switch was started (and announced, if asked).
 function syncScene(announce) {
   const def = targetScene();
-  if (stage.def !== def) {
+  let switched = false;
+  if (stage.target() !== def) {
     if (!def.create) {
       loadScene(def).then(
         () => {
@@ -340,9 +351,11 @@ function syncScene(announce) {
       stage.setScene(def);
       audio.transition();
       if (announce) showNowPlaying(def);
+      switched = true;
     }
   }
-  if (state.mode === "playing" || state.mode === "paused") audio.play(def.track);
+  if (state.mode === "playing" || state.mode === "paused") audio.play(stage.target().track);
+  return switched;
 }
 
 function showNowPlaying(def) {
@@ -354,8 +367,9 @@ function cycleScene() {
   prefs.scene = SCENE_CYCLE[i];
   savePrefs();
   updateSceneLabel();
-  syncScene(true);
-  if (stage.def === targetScene()) showNowPlaying(stage.def);
+  // Already showing the new choice (Journey ↔ the world it is on): no wipe,
+  // but still say what is playing.
+  if (!syncScene(true) && stage.target() === targetScene()) showNowPlaying(stage.target());
 }
 
 function updateSceneLabel() {
@@ -505,11 +519,16 @@ function showOverlay(html, kind) {
   el.overlayCard.innerHTML = html;
   el.overlay.classList.remove("hidden");
   el.overlay.scrollTop = 0;
+  document.body.classList.add("menu-open");
 }
 
 function hideOverlay() {
   overlayKind = "";
   el.overlay.classList.add("hidden");
+  // The card's content stays in the DOM while hidden; dropping it also ends
+  // the Daily countdown, which stops once its element is gone.
+  el.overlayCard.textContent = "";
+  document.body.classList.remove("menu-open");
 }
 
 function grid(cells) {
@@ -544,10 +563,40 @@ function titleStats(m) {
   ];
 }
 
+// A friend's link deals their pieces for every game in that mode until the
+// player opts out — so say so, with or without a score to beat.
 function challengeBanner(m) {
-  if (!challenge || challenge.mode !== m || !challenge.beat) return "";
-  const v = m === "sprint" ? fmtClock(challenge.beat, true) : fmt(challenge.beat);
-  return '<p class="challenge">' + t(m === "sprint" ? "challenge.time" : "challenge.score", { v: v }) + "</p>";
+  if (!challenge || challenge.mode !== m) return "";
+  let text;
+  if (challenge.beat) {
+    const v = m === "sprint" ? fmtClock(challenge.beat, true) : fmt(challenge.beat);
+    text = t(m === "sprint" ? "challenge.time" : "challenge.score", { v: v });
+  } else text = t("challenge.deal");
+  return (
+    '<p class="challenge">' + text + '<br><button type="button" class="link-btn" data-action="dropChallenge">' +
+    t("challenge.drop") + "</button></p>"
+  );
+}
+
+// Back to random deals; the link loses its seed so a reload agrees.
+function dropChallenge() {
+  challenge = null;
+  try {
+    const q = new URLSearchParams(location.search);
+    q.delete("seed");
+    q.delete("beat");
+    const qs = q.toString();
+    history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + location.hash);
+  } catch (e) {
+    /* the address bar keeps the seed; the game still forgets it */
+  }
+  if (state.mode === "title") showTitle();
+}
+
+// The countdown ticks every second; inside the overlay's live region a
+// screen reader would read every tick out loud.
+function countdownHtml() {
+  return '<span id="countdown" role="timer" aria-live="off">' + formatCountdown(msToNextDaily()) + "</span>";
 }
 
 function menuLinks() {
@@ -574,7 +623,7 @@ function showTitle() {
   const daily =
     m === "daily" && playedToday()
       ? '<p class="sub small">' + t("daily.done") + "<br>" +
-        t("daily.next", { t: '<span id="countdown">' + formatCountdown(msToNextDaily()) + "</span>" }) + "</p>"
+        t("daily.next", { t: countdownHtml() }) + "</p>"
       : "";
   showOverlay(
     "<h2>Tangletris</h2>" +
@@ -641,7 +690,7 @@ function showGameOver() {
     best =
       '<p class="sub">' + t("over.todayBest", { v: fmt(prefs.daily.best) }) +
       (streakNow() > 0 ? " · 🔥 " + streakNow() : "") + "<br>" +
-      t("daily.next", { t: '<span id="countdown">' + formatCountdown(msToNextDaily()) + "</span>" }) + "</p>";
+      t("daily.next", { t: countdownHtml() }) + "</p>";
   } else if (r.mode === "sprint") {
     const b = bestFor("sprint");
     best = b.time ? '<p class="sub">' + t("over.personalBest", { v: fmtClock(b.time, true) }) + "</p>" : "";
@@ -762,6 +811,7 @@ el.overlay.addEventListener("click", (e) => {
   else if (action === "mode") selectMode(btn.dataset.mode);
   else if (action === "menu") toMenu();
   else if (action === "share") doShare();
+  else if (action === "dropChallenge") dropChallenge();
   else if (action === "pieces") showPieces();
   else if (action === "awards") showAwards();
 });
@@ -932,11 +982,11 @@ function onRunEnd() {
 }
 
 // Called straight after a frame is drawn, while the picture is still there.
-function captureShareCard() {
+function captureShareCard(boardRect) {
   captureNext = false;
   const s = shareCard;
   if (!s) return;
-  const frame = captureFrame(el.gl, el.boardFrame.getBoundingClientRect());
+  const frame = captureFrame(el.gl, boardRect);
   const card = buildCard(
     frame,
     Object.assign({}, s.card, {
@@ -966,8 +1016,9 @@ game.on("start", () => {
 });
 
 game.on("quit", () => {
+  // The muffle of the pause stays on while the song fades out — lifting it
+  // now would swell the fade. The next start lifts it.
   audio.stopMusic(1.2);
-  audio.muffle(false);
   el.popups.textContent = "";
   lastResult = null;
   syncScene(false);
@@ -1074,6 +1125,8 @@ document.addEventListener("keydown", (e) => {
   if (IGNORED_KEYS.indexOf(key) !== -1 || /^F\d{1,2}$/.test(key)) return;
   const k = key.length === 1 ? key.toLowerCase() : key;
   audio.ensure();
+  // Still loading (or no WebGL): nothing to play or switch yet.
+  if (!booted()) return;
 
   // Global shortcuts.
   if (k === "t") return cycleScene();
@@ -1188,6 +1241,7 @@ document.querySelectorAll("[data-touch]").forEach((btn) => {
     (e) => {
       e.preventDefault();
       audio.ensure();
+      if (!booted()) return;
       if (state.mode === "title" || state.mode === "over") {
         if (state.mode === "title" || game.canRestart()) startGame();
         return;
@@ -1261,6 +1315,7 @@ document.querySelectorAll("[data-touch]").forEach((btn) => {
     // The menus are read and tapped, not tapped through: only a tap beside
     // the card starts a game from there. Buttons handle themselves (click).
     if (e.target.closest && e.target.closest("[data-action], .overlay-card")) return;
+    if (!booted()) return;
     if (state.mode === "title" || state.mode === "over") {
       if (state.mode === "title" || game.canRestart()) startGame();
       return;
@@ -1277,10 +1332,17 @@ function motionAmount() {
   return reducedMotion ? 0.35 : 1;
 }
 
+// The worlds have no "off" — they slow down instead, as they do for the
+// system's reduced-motion setting.
+function worldsCalm() {
+  return reducedMotion || !prefs.motion;
+}
+
 function toggleMotion() {
   prefs.motion = !prefs.motion;
   el.motionBtn.setAttribute("aria-pressed", String(prefs.motion));
   board.motion = motionAmount();
+  stage.setReducedMotion(worldsCalm());
   savePrefs();
 }
 
@@ -1301,9 +1363,11 @@ function toggleMusic() {
 
 el.sceneBtn.addEventListener("click", () => {
   audio.ensure();
-  cycleScene();
+  if (booted()) cycleScene();
 });
-el.motionBtn.addEventListener("click", toggleMotion);
+el.motionBtn.addEventListener("click", () => {
+  if (booted()) toggleMotion();
+});
 el.sfxBtn.addEventListener("click", () => {
   audio.ensure();
   toggleSfx();
@@ -1360,44 +1424,77 @@ const MIN_CELL = 12;
 const MAX_CELL = 36;
 let layoutQueued = false;
 
-function applyCellSize(c, wide) {
+// Phone held sideways (see body.landscape in styles.css): per side, a thumb
+// cluster of the touch pad and a rail sit beside the board.
+const LANDSCAPE_CLUSTER = 124;
+const LANDSCAPE_RAIL = 112 + 12;
+
+function applyCellSize(c, mode) {
   const root = document.documentElement.style;
   root.setProperty("--board-w", Math.round(BOARD_W * c) + "px");
   root.setProperty("--board-h", Math.round(BOARD_H * c) + "px");
-  // On narrow screens the HUD sits in a single row above the board, so the
-  // preview stack has to stay short.
-  nextCount = wide ? 3 : 2;
-  const pc = wide
-    ? Math.max(10, Math.min(20, Math.round(c * 0.6)))
-    : Math.max(8, Math.min(15, Math.round(c * 0.5)));
+  // On narrow screens the HUD sits in a single row above the board, and
+  // sideways the rails are short: the preview stack has to stay short too.
+  const tall = mode === "wide";
+  nextCount = tall ? 3 : 2;
+  const pc =
+    mode === "narrow"
+      ? Math.max(8, Math.min(15, Math.round(c * 0.5)))
+      : Math.max(10, Math.min(20, Math.round(c * 0.6)));
   root.setProperty("--slot-w", Math.round(pc * 5) + "px");
-  root.setProperty("--slot-h", Math.round(pc * 3.6) + "px");
+  root.setProperty("--slot-h", Math.round(pc * (mode === "landscape" ? 3 : 3.6)) + "px");
 }
 
-// How far down the page the last thing you need to reach sits.
-function controlsBottom() {
-  return Math.max(el.touchpad.getBoundingClientRect().bottom, el.levelTrack.getBoundingClientRect().bottom);
+function layoutMode() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const touchUi = document.body.classList.contains("touch") || window.matchMedia("(pointer: coarse)").matches;
+  if (touchUi && w > h && h < 600) return "landscape";
+  return w >= 900 ? "wide" : "narrow";
+}
+
+// How far down the page the last thing you need to reach sits. Sideways the
+// touch pad is pinned to the screen, so the rails count instead.
+function controlsBottom(mode) {
+  let bottom = el.levelTrack.getBoundingClientRect().bottom;
+  if (mode === "landscape") {
+    for (const rail of document.querySelectorAll(".rail")) bottom = Math.max(bottom, rail.getBoundingClientRect().bottom);
+  } else {
+    bottom = Math.max(bottom, el.touchpad.getBoundingClientRect().bottom);
+  }
+  return bottom;
 }
 
 function layout() {
-  const wide = window.innerWidth >= 900;
-  const sideSpace = wide ? 460 : 0;
-  const maxW = Math.min(window.innerWidth - 40 - sideSpace, 470);
-  const maxH = window.innerHeight - (wide ? 140 : 250);
+  const mode = layoutMode();
+  document.body.classList.toggle("landscape", mode === "landscape");
+  let maxW;
+  let maxH;
+  if (mode === "landscape") {
+    maxW = window.innerWidth - 2 * (LANDSCAPE_CLUSTER + LANDSCAPE_RAIL);
+    maxH = window.innerHeight - 60;
+  } else {
+    const wide = mode === "wide";
+    maxW = Math.min(window.innerWidth - 40 - (wide ? 460 : 0), 470);
+    maxH = window.innerHeight - (wide ? 140 : 250);
+  }
   let c = Math.floor(Math.min(maxW / BOARD_W, maxH / BOARD_H));
   c = Math.max(MIN_CELL, Math.min(MAX_CELL, c));
-  applyCellSize(c, wide);
+  applyCellSize(c, mode);
 
-  // The header, HUD row and touch pad differ per device and per font, so
-  // rather than guessing their height, start optimistic and measure: shrink
-  // the board until the controls actually sit on screen.
-  if (!wide) {
-    for (let i = 0; i < 6 && c > MIN_CELL; i++) {
-      const over = controlsBottom() + 8 - window.innerHeight;
-      if (over <= 0) break;
-      c = Math.max(MIN_CELL, c - Math.max(1, Math.ceil(over / BOARD_H)));
-      applyCellSize(c, wide);
-    }
+  // The header, HUD and touch pad differ per device and per font, so rather
+  // than guessing their height, start optimistic and measure: shrink the
+  // board until the controls actually sit on screen. On a tablet the pad
+  // sits under the board in the wide layout too, so every layout checks.
+  for (let i = 0; i < 6 && c > MIN_CELL; i++) {
+    const over = controlsBottom(mode) + 8 - window.innerHeight;
+    if (over <= 0) break;
+    c = Math.max(MIN_CELL, c - Math.max(1, Math.ceil(over / BOARD_H)));
+    applyCellSize(c, mode);
+  }
+  if (mode === "landscape") {
+    const top = document.querySelector(".topbar").offsetHeight;
+    document.documentElement.style.setProperty("--top-h", top + "px");
   }
   if (previews) updatePreviews();
 }
@@ -1429,12 +1526,21 @@ function tick(now) {
   requestAnimationFrame(tick);
 
   // Mobile browsers do not always fire resize when the address bar slides
-  // away, so the layout checks its own assumptions instead of trusting it.
+  // away, so the layout checks its own assumptions instead of trusting it —
+  // and lays out right here, so this frame already draws the board where
+  // the new layout puts it.
   if (window.innerWidth !== lastW || window.innerHeight !== lastH) {
     lastW = window.innerWidth;
     lastH = window.innerHeight;
-    scheduleLayout();
+    layout();
   }
+
+  // Every layout read of the frame happens first, while the layout is still
+  // clean from the last paint. Read after this frame's DOM writes (the HUD,
+  // the clock, popups), each would force a synchronous style and layout.
+  const boardRect = el.boardFrame.getBoundingClientRect();
+  stage.measure();
+  const slotRects = previews.measure();
 
   if (!last) last = now;
   let dt = (now - last) / 1000;
@@ -1448,10 +1554,10 @@ function tick(now) {
   audio.setIntensity(state.mode === "playing" ? game.danger() : 0);
   audio.update(dt);
   board.update(dt, clock, audio.pulses);
-  stage.fitBoard(el.boardFrame.getBoundingClientRect());
+  stage.fitBoard(boardRect);
   stage.render(clock, dt, audio.pulses);
-  if (captureNext) captureShareCard();
-  previews.render(clock, dt);
+  if (captureNext) captureShareCard(boardRect);
+  previews.render(clock, dt, slotRects);
 }
 
 /* ------------------------------------------------------------------ boot */
@@ -1462,23 +1568,48 @@ function webglFailed(err) {
 }
 
 // Installable and playable offline. The worker is handed everything this
-// page has loaded so far, so even the first visit is enough.
-function registerWorker() {
+// page has loaded so far, so even the first visit is enough: once as soon as
+// it runs (the game itself), and again when the other worlds are in.
+function registerWorker(worldsLoaded) {
   if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+  const handOver = (reg) => {
+    const urls = performance
+      .getEntriesByType("resource")
+      .map((e) => e.name)
+      .filter((u) => u.indexOf(location.origin) === 0 || u.indexOf("https://cdn.jsdelivr.net/") === 0);
+    urls.push(location.origin + location.pathname);
+    if (reg.active) reg.active.postMessage({ type: "cache", urls: urls });
+  };
   navigator.serviceWorker
     .register(new URL("../sw.js", import.meta.url))
     .then(() => navigator.serviceWorker.ready)
     .then((reg) => {
-      setTimeout(() => {
-        const urls = performance
-          .getEntriesByType("resource")
-          .map((e) => e.name)
-          .filter((u) => u.indexOf(location.origin) === 0 || u.indexOf("https://cdn.jsdelivr.net/") === 0);
-        urls.push(location.origin + location.pathname);
-        if (reg.active) reg.active.postMessage({ type: "cache", urls: urls });
-      }, 12000);
+      handOver(reg);
+      // The worker skips what it already has, so the second list only
+      // fetches the worlds (and anything else loaded since).
+      worldsLoaded.then(() => setTimeout(() => handOver(reg), 1000));
     })
     .catch(() => {});
+}
+
+// The world to open with. If its code will not load (offline with a cold
+// cache, a CDN hiccup), any world that does is better than a dead page.
+async function firstScene() {
+  const wanted = targetScene();
+  try {
+    return await loadScene(wanted);
+  } catch (err) {
+    console.error(err);
+  }
+  for (const id of JOURNEY) {
+    if (SCENES[id] === wanted) continue;
+    try {
+      return await loadScene(SCENES[id]);
+    } catch (e) {
+      /* try the next one */
+    }
+  }
+  return null;
 }
 
 async function boot() {
@@ -1496,7 +1627,7 @@ async function boot() {
 
   layout();
   try {
-    stage = new Stage(el.gl, { reducedMotion });
+    stage = new Stage(el.gl, { reducedMotion: worldsCalm() });
     board = new Board(stage);
     previews = new Previews(el.previews);
   } catch (err) {
@@ -1508,15 +1639,27 @@ async function boot() {
   board.motion = motionAmount();
   stage.onSceneChange((def) => applyPalette(def, false));
   stage.onContext((status) => {
-    if (status === "restored") board.restore();
+    if (status === "restored") {
+      board.restore();
+      board.precompile();
+    }
     onContext(status);
   });
-  const first = targetScene();
-  applyPalette(first, true);
-  // Only the first world is needed to start; without it there is nothing
-  // to show, and the page's own timeout explains what went wrong.
-  await loadScene(first);
+  applyPalette(targetScene(), true);
+  // Only the first world is needed to start.
+  const first = await firstScene();
+  if (!first) {
+    window.__tangletrisBooted = true;
+    showOverlay(
+      "<h2>Tangletris</h2>" + '<p class="sub">' + t("load.text") + "</p>" +
+        '<button type="button" class="btn" data-action="reload">' + t("btn.reload") + "</button>"
+    );
+    return;
+  }
   stage.setScene(first, true);
+  // The effects of the board (row blades, drop trails, rings) are hidden
+  // until their moment; build their shaders now, not mid-game.
+  board.precompile();
 
   updateHud();
   updatePreviews();
@@ -1525,8 +1668,8 @@ async function boot() {
   window.__tangletris = { game, stage, board, audio, previews, prefs };
   requestAnimationFrame(tick);
   // The other worlds follow once this one is on screen.
-  setTimeout(() => preloadScenes(), 1500);
-  registerWorker();
+  const worldsLoaded = new Promise((resolve) => setTimeout(() => preloadScenes().then(resolve), 1500));
+  registerWorker(worldsLoaded);
 }
 
 boot();

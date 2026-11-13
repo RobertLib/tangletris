@@ -108,8 +108,10 @@ export class Stage {
     this.parallax = { x: 0, y: 0 };
 
     this.size = { w: 0, h: 0, pr: 1 };
+    this.client = null; // the canvas's CSS size, read once a frame (measure)
     const top = this.quality === "high" ? 0 : 1;
-    this.perf = { acc: 0, frames: 0, step: top, ceiling: top, floor: LADDER.length - 1, fast: 0, probe: null };
+    this.perf = { acc: 0, frames: 0, step: top, top: top, ceiling: top, floor: LADDER.length - 1, fast: 0, probe: null, skip: 0 };
+    this.resetPerfLimits();
     this.applyStep(top);
 
     this.contextLost = false;
@@ -213,6 +215,46 @@ export class Stage {
     this.listeners.push(fn);
   }
 
+  // The world the stage is heading to: mid-wipe that is not the one on
+  // screen (this.def) yet.
+  target() {
+    const tr = this.transition;
+    if (!tr) return this.def;
+    return tr.queued || (tr.phase === "out" ? tr.next : this.def);
+  }
+
+  // The worlds read reduced motion when they are built, so a change rebuilds
+  // the one on screen behind a wipe.
+  setReducedMotion(on) {
+    on = !!on;
+    if (on === this.reducedMotion) return;
+    this.reducedMotion = on;
+    // Mid-wipe, a world not built yet picks the setting up by itself; one
+    // already built is rebuilt once the wipe has cleared.
+    if (this.inst && !this.transition) this.startTransition(this.def);
+    else if (this.transition && this.transition.phase !== "out") this.transition.rebuild = true;
+  }
+
+  // Builds the shader programs for everything in `scene` — hidden objects
+  // included — so their first appearance doesn't stall a frame. three keys
+  // programs on the render target too (tone mapping and colour space are
+  // applied only when drawing to the screen), and everything here is drawn
+  // into the composer's targets, so compile against one of those.
+  precompile(scene, camera) {
+    const r = this.renderer;
+    const prev = r.getRenderTarget();
+    r.setRenderTarget(this.composer.readBuffer);
+    let ready;
+    try {
+      ready = r.compileAsync ? r.compileAsync(scene, camera) : (r.compile(scene, camera), Promise.resolve());
+    } catch (e) {
+      ready = Promise.reject(e);
+    } finally {
+      r.setRenderTarget(prev);
+    }
+    return ready;
+  }
+
   // fn("lost") when the browser takes the GPU away, fn("restored") once the
   // stage has rebuilt itself on a new context.
   onContext(fn) {
@@ -227,6 +269,9 @@ export class Stage {
     if (instant || !this.inst) {
       this.endTransition();
       this.swapScene(def);
+      // Drawn at once, so the visible part compiles on the first frame
+      // anyway; this catches what starts hidden (a meteor, say).
+      this.precompile(this.inst.scene, this.inst.camera).catch(() => {});
       return;
     }
     if (!tr) {
@@ -247,7 +292,10 @@ export class Stage {
   }
 
   startTransition(def) {
-    this.transition = { phase: "out", t: 0, next: def, queued: null };
+    this.transition = { phase: "out", t: 0, next: def, queued: null, rebuild: false };
+    // Frame times measured across a wipe belong to two different worlds; a
+    // quality trial running now would compare one with the other.
+    this.perf.probe = null;
     this.fadeUniforms.uColor.value.set(def.palette.fade || def.palette.board || "#000");
     this.fadeUniforms.uEdge.value.set(def.palette.accent).multiplyScalar(0.8);
     this.fadeQuad.visible = true;
@@ -267,13 +315,23 @@ export class Stage {
       this.inst.dispose && this.inst.dispose();
       disposeObject(this.inst.scene);
     }
+    // Never left pointing at a disposed world, even if the new one throws.
+    const prev = this.def;
+    this.inst = null;
     this.def = def;
-    this.inst = def.create({
-      renderer: this.renderer,
-      quality: this.quality,
-      pixelRatio: this.size.pr,
-      reducedMotion: this.reducedMotion,
-    });
+    try {
+      this.inst = def.create({
+        renderer: this.renderer,
+        quality: this.quality,
+        pixelRatio: this.size.pr,
+        reducedMotion: this.reducedMotion,
+      });
+    } catch (err) {
+      this.def = prev;
+      throw err;
+    }
+    // A new world costs differently: the quality ladder may explore again.
+    this.resetPerfLimits();
     // Each world runs on its own clock, so time-driven shaders never see a
     // huge float32 value; a random start keeps every visit different.
     this.sceneTime = Math.random() * 600;
@@ -297,7 +355,6 @@ export class Stage {
       this.fadeUniforms.uProgress.value = k * k * (3 - 2 * k);
       if (k >= 1) {
         tr.phase = "load";
-        this.swapScene(tr.next);
         // Don't draw the new world until its shaders are linked: the first
         // draw of an unlinked program blocks the main thread, which would
         // freeze the wipe. The veil covers the screen meanwhile.
@@ -308,10 +365,27 @@ export class Stage {
           tr.t = 0;
           this.bgPass.enabled = true;
         };
-        if (this.renderer.compileAsync) {
-          this.renderer.compileAsync(this.inst.scene, this.inst.camera).then(done, done);
-          setTimeout(done, LOAD_TIMEOUT_MS);
-        } else done();
+        // Whatever happens below, the veil lifts again.
+        setTimeout(done, LOAD_TIMEOUT_MS);
+        try {
+          this.swapScene(tr.next);
+        } catch (err) {
+          // The world failed to build. Fall back to the one we came from
+          // (swapScene put it back in this.def; its instance is gone, so it
+          // is built afresh) rather than leave the veil up over nothing.
+          console.error(err);
+          const back = this.def;
+          if (back && back !== tr.next) {
+            try {
+              this.swapScene(back, true);
+            } catch (e) {
+              console.error(e);
+            }
+          }
+          if (!this.inst) this.bgPass.scene = new THREE.Scene();
+        }
+        if (this.inst) this.precompile(this.inst.scene, this.inst.camera).then(done, done);
+        else done();
       }
     } else if (tr.phase === "in") {
       const k = clamp(tr.t / FADE_IN, 0, 1);
@@ -319,8 +393,10 @@ export class Stage {
       this.fadeUniforms.uProgress.value = e * e * (3 - 2 * e);
       if (k >= 1) {
         const queued = tr.queued;
+        const rebuild = tr.rebuild;
         this.endTransition();
         if (queued && queued !== this.def) this.startTransition(queued);
+        else if (rebuild) this.startTransition(this.def);
       }
     }
   }
@@ -332,20 +408,33 @@ export class Stage {
   // again, which for a world means building it again from scratch.
   restoreContext() {
     this.contextLost = false;
-    const tr = this.transition;
-    const def = tr ? tr.queued || (tr.phase === "out" ? tr.next : this.def) : this.def;
+    const def = this.target();
     this.endTransition();
-    if (def) this.swapScene(def, true);
+    if (def) {
+      try {
+        this.swapScene(def, true);
+      } catch (err) {
+        console.error(err);
+      }
+    }
     for (const fn of this.contextListeners) fn("restored");
   }
 
   /* --------------------------------------------------------------- sizing */
 
+  // Reads the canvas's CSS size. The page calls this at the start of its
+  // frame, before it writes to the DOM, so the read never forces a layout;
+  // resize() then uses the cached numbers.
+  measure() {
+    this.client = { w: this.canvas.clientWidth, h: this.canvas.clientHeight };
+  }
+
   resize() {
     // The canvas, not the window: with a classic scrollbar the two differ,
     // and the board would be pinned a few pixels off its HTML frame.
-    const w = Math.max(1, this.canvas.clientWidth || window.innerWidth);
-    const h = Math.max(1, this.canvas.clientHeight || window.innerHeight);
+    const c = this.client || { w: this.canvas.clientWidth, h: this.canvas.clientHeight };
+    const w = Math.max(1, c.w || window.innerWidth);
+    const h = Math.max(1, c.h || window.innerHeight);
     const dpr = window.devicePixelRatio || 1;
     let pr = Math.min(dpr, 2, Math.sqrt(this.maxPixels / (w * h)));
     pr = Math.max(0.6, pr * this.prScale);
@@ -486,11 +575,28 @@ export class Stage {
     this.resize();
   }
 
+  // The limits the ladder learnt hold for one world only: each costs
+  // differently, so a new one may explore the whole ladder again. The first
+  // verdict after a swap is skipped — loading, compiling and the page's own
+  // start-up work (fonts, the other worlds arriving) are not the device.
+  resetPerfLimits() {
+    const p = this.perf;
+    if (!p) return;
+    p.ceiling = p.top;
+    p.floor = LADDER.length - 1;
+    p.probe = null;
+    p.fast = 0;
+    p.acc = 0;
+    p.frames = 0;
+    p.skip = 1;
+  }
+
   // Walk the quality ladder from the measured frame times. A step down is
   // a trial: if the next verdict isn't clearly faster, the bottleneck is
   // elsewhere (a frame-rate cap, the CPU), so it is undone and the ladder
   // stops there. A step up that turns out slow is undone and becomes the
-  // ceiling, so the two can never see-saw.
+  // ceiling, so the two can never see-saw — within one world (see
+  // resetPerfLimits).
   trackPerformance(dt) {
     const p = this.perf;
     // World swaps compile shaders and stall a frame or two: not the device.
@@ -506,6 +612,10 @@ export class Stage {
     p.acc = 0;
     p.frames = 0;
     if (document.hidden) return;
+    if (p.skip > 0) {
+      p.skip--;
+      return;
+    }
 
     const probe = p.probe;
     p.probe = null;

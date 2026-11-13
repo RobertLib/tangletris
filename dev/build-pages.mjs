@@ -53,9 +53,19 @@ try {
   console.warn("build-pages: js/scenes/meta.js could not be loaded — reading the scene files instead");
 }
 
-// The level ramp of the odd shapes and the gravity curve, as in js/game.js.
-const tangleRatio = (level) => Math.min(1, 0.4 + (level - 1) * 0.12);
-const fallMs = (level) => Math.max(70, Math.round(800 * Math.pow(0.855, level - 1)));
+// The level ramp of the odd shapes and the gravity curve, straight from the
+// rules, so the guide pages cannot drift from the game. game.js imports its
+// neighbours by relative path, which the data: URL fallback cannot resolve —
+// it needs a Node that loads ES modules from .js files (22 or later).
+let RULES;
+try {
+  RULES = await import(pathToFileURL(join(ROOT, "js/game.js")).href);
+} catch (e) {
+  console.error("build-pages: js/game.js could not be imported — run this with Node 22 or later.");
+  throw e;
+}
+const tangleRatio = RULES.levelTangle;
+const fallMs = RULES.fallInterval;
 const FULL_TANGLE_LEVEL = (() => {
   let l = 1;
   while (tangleRatio(l) < 1) l++;
@@ -1374,8 +1384,8 @@ function howtoPage(lang) {
           <h2 id="goal">${c.t({ en: "The goal", cs: "Cíl hry" })}</h2>
           <div class="panel">
             <p>${c.t({
-              en: "Pieces fall into a board 10 cells wide and 20 tall. Move and rotate them so they fill complete horizontal rows: a full row disappears and everything above drops down. Clear four rows at once and you’ve scored a <strong>Tangle</strong>. The game ends when a new piece has no room to appear at the top.",
-              cs: "Kostky padají do desky široké 10 a vysoké 20 polí. Posouvej je a otáčej tak, aby vyplnily celé vodorovné řady: plná řada zmizí a všechno nad ní spadne dolů. Smažeš-li čtyři řady naráz, máš <strong>Tangle</strong>. Hra končí, když se nová kostka nemá kam vejít.",
+              en: "Pieces fall into a board 10 cells wide and 20 tall. Move and rotate them so they fill complete horizontal rows: a full row disappears and everything above drops down. Clear four rows at once and you’ve scored a <strong>Tangle</strong>. The game ends when the stack reaches the top: a new piece has no room to appear, or a piece locks with part of it sticking out above the board.",
+              cs: "Kostky padají do desky široké 10 a vysoké 20 polí. Posouvej je a otáčej tak, aby vyplnily celé vodorovné řady: plná řada zmizí a všechno nad ní spadne dolů. Smažeš-li čtyři řady naráz, máš <strong>Tangle</strong>. Hra končí, když stavba dosáhne stropu: nová kostka se nemá kam vejít, nebo kostka zapadne tak, že jí část trčí nad desku.",
             })}</p>
             <p>${c.fill({
               en: `Most pieces are the seven classic tetrominoes, but the bag also deals hearts, rockets, stars and other <a href="{page:pieces}">odd shapes</a> — more of them with every level.`,

@@ -188,7 +188,9 @@ export class Board {
   // lost-and-restored context needs it baked again (see restore).
   buildEnvironment() {
     const pmrem = new THREE.PMREMGenerator(this.stage.renderer);
-    this.envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    const room = new RoomEnvironment();
+    this.envTex = pmrem.fromScene(room, 0.04).texture;
+    room.dispose();
     pmrem.dispose();
     this.stage.fgScene.environment = this.envTex;
   }
@@ -197,6 +199,13 @@ export class Board {
   // went with the old context, so it is dropped rather than disposed.
   restore() {
     this.buildEnvironment();
+  }
+
+  // The row blades, drop trails and rings stay hidden until their moment,
+  // and a hidden object is not compiled until it is first drawn — which
+  // would be mid-game, on a line clear. Compile the whole playfield now.
+  precompile() {
+    this.stage.precompile(this.stage.fgScene, this.stage.fgCamera).catch(() => {});
   }
 
   buildLights(scene) {
@@ -657,8 +666,11 @@ export class Board {
     for (let y = 0; y < ROWS; y++) {
       if (y < n) {
         this.flash[y].fill(0);
-        this.drop[y].fill(0);
         this.pop[y].fill(0);
+        // The new top rows are empty — except for cells of a piece that
+        // locked above the field, which drop in from up there.
+        const row = game.state.board[y];
+        for (let x = 0; x < COLS; x++) this.drop[y][x] = row[x] === null ? 0 : n;
         continue;
       }
       const old = kept[y - n];

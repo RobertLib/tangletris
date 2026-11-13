@@ -139,7 +139,17 @@ export function canRestart() {
 // that ramp is the difficulty curve. Some modes pin the ratio instead.
 export function tangleRatio(level) {
   if (rules.tangle !== null) return rules.tangle;
-  return Math.min(1, 0.4 + ((level || state.level) - 1) * 0.12);
+  return levelTangle(level || state.level);
+}
+
+// The ramp itself, also quoted by the guide pages (dev/build-pages.mjs).
+export function levelTangle(level) {
+  return Math.min(1, 0.4 + (level - 1) * 0.12);
+}
+
+// ms per row of gravity at a level — likewise shared with the guide pages.
+export function fallInterval(level) {
+  return Math.max(70, Math.round(800 * Math.pow(0.855, level - 1)));
 }
 
 // Every copy of every odd piece draws a number whether it makes the bag or
@@ -218,8 +228,7 @@ export function danger() {
 /* -------------------------------------------------------------- game flow */
 
 function dropInterval() {
-  const level = rules.fixedSpeed ? 1 : state.level;
-  return Math.max(70, Math.round(800 * Math.pow(0.855, level - 1)));
+  return fallInterval(rules.fixedSpeed ? 1 : state.level);
 }
 
 function spawn() {
@@ -362,7 +371,10 @@ function lockPiece(hard) {
   if (!p) return;
 
   const cells = [];
-  let anyVisible = false;
+  // Cells that locked above the top row. There is no hidden buffer above
+  // the field, so they wait here: a line clear underneath drops them into
+  // view, and without one the stack has topped out.
+  const overflow = [];
   for (let y = 0; y < p.cells.length; y++) {
     for (let x = 0; x < p.cells[y].length; x++) {
       if (!p.cells[y][x]) continue;
@@ -371,21 +383,14 @@ function lockPiece(hard) {
       if (by >= 0) {
         state.board[by][bx] = p.id;
         cells.push({ x: bx, y: by });
-        anyVisible = true;
+      } else {
+        overflow.push({ x: bx, y: by, id: p.id });
       }
     }
   }
   state.piece = null;
   state.lastLocked = p.id;
   emit("lock", { id: p.id, cells: cells, hard: !!hard });
-
-  if (!anyVisible) {
-    if (rules.zen) {
-      sweep();
-      spawn();
-    } else gameOver();
-    return;
-  }
 
   const rows = [];
   for (let y = 0; y < ROWS; y++) {
@@ -400,16 +405,28 @@ function lockPiece(hard) {
   }
 
   if (rows.length) {
-    state.clearing = { rows: rows, t: 0 };
+    state.clearing = { rows: rows, t: 0, overflow: overflow };
     emit("clearStart", { rows: rows.slice(), board: state.board.map((r) => r.slice()) });
+  } else if (overflow.length) {
+    topOut();
   } else {
     state.combo = -1;
     spawn();
   }
 }
 
+// A piece that cannot fit on the field ends the run — except in Zen, where
+// the stack is swept away and play goes on.
+function topOut() {
+  if (rules.zen) {
+    sweep();
+    spawn();
+  } else gameOver();
+}
+
 function finishClear() {
   const rows = state.clearing.rows;
+  const overflow = state.clearing.overflow || [];
   const n = rows.length;
   state.clearing = null;
 
@@ -417,6 +434,15 @@ function finishClear() {
   rows.sort((a, b) => a - b);
   for (let i = n - 1; i >= 0; i--) state.board.splice(rows[i], 1);
   for (let i = 0; i < n; i++) state.board.unshift(new Array(COLS).fill(null));
+
+  // Every cleared row lies below the cells that locked above the field, so
+  // they all come down by n — into the empty rows just added at the top.
+  let lockedOut = false;
+  for (const c of overflow) {
+    const y = c.y + n;
+    if (y >= 0) state.board[y][c.x] = c.id;
+    else lockedOut = true;
+  }
 
   /* -- scoring ---------------------------------------------------------- */
   const base = [0, 100, 300, 500, 800][Math.min(n, 4)] + (n > 4 ? (n - 4) * 300 : 0);
@@ -459,6 +485,11 @@ function finishClear() {
   emit("score");
   if (rules.lineGoal && state.lines >= rules.lineGoal) {
     finish("goal");
+    return;
+  }
+  if (lockedOut) {
+    state.buffered = null;
+    topOut();
     return;
   }
   spawn();

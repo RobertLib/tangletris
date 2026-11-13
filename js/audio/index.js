@@ -4,7 +4,7 @@
    Sound effects are harmonised with whatever chord the music is on, so a
    line clear always lands *in* the song rather than on top of it.
    ========================================================================== */
-import { Engine, impact } from "./engine.js";
+import { Engine, impact, SFX_LEVEL } from "./engine.js";
 import { Song } from "./sequencer.js";
 import { TRACKS } from "./tracks.js";
 import { parseChord, chordNotes, Ladder, MODES, pitchClass, mtof } from "./theory.js";
@@ -47,6 +47,7 @@ export class Director {
   ensure() {
     try {
       const fresh = !this.ready;
+      if (fresh) this.syncSession();
       const ok = this.eng.ensure(this.musicOn || this.sfxOn);
       if (ok && !this.fx) this.buildSfx();
       if (ok && fresh && !this.musicOn && !this.sfxOn) this.eng.suspend();
@@ -125,12 +126,34 @@ export class Director {
     this.song = song;
     try {
       song.start(now + (old ? 0.45 : 0.06));
+      this.warmSfx(song);
     } catch (e) {
       console.warn("Track " + id + " failed to start:", e);
       song.stop(0);
       song.rack.disconnect();
       this.song = null;
     }
+  }
+
+  // The effects' string notes are rendered on first use — otherwise inside
+  // the key handler of the first line clear or hard drop. Render the ones
+  // this key can ask for in the background instead, a few at a time (hard
+  // drop: chord roots 40–52; clears and game over: 59–96).
+  warmSfx(song) {
+    const pluck = this.fx && this.fx.pluck;
+    if (!pluck || !pluck.warm || !this.sfxOn) return;
+    const tr = song.track;
+    const scale = new Set(MODES[tr.mode].map((iv) => (pitchClass(tr.key) + iv) % 12));
+    const notes = [];
+    for (let m = 40; m <= 52; m++) if (scale.has(m % 12)) notes.push(m);
+    for (let m = 59; m <= 96; m++) if (scale.has(m % 12)) notes.push(m);
+    const token = this.token;
+    const step = () => {
+      if (token !== this.token || !notes.length) return;
+      for (let i = 0; i < 3 && notes.length; i++) pluck.warm(notes.shift());
+      setTimeout(step, 30);
+    };
+    setTimeout(step, 600);
   }
 
   stopMusic(fade) {
@@ -142,8 +165,25 @@ export class Director {
     }
   }
 
+  // iOS mutes web audio with the ring/silent switch unless the page says it
+  // plays media. With the music on the game is one ("playback": heard on
+  // silent, and it pauses the player's own music app); with only the sound
+  // effects it blends in ("ambient": mixes with their music, quiet on
+  // silent). Safari 17+; elsewhere navigator.audioSession does not exist.
+  syncSession() {
+    const session = typeof navigator !== "undefined" && navigator.audioSession;
+    if (!session) return;
+    const type = this.musicOn ? "playback" : this.sfxOn ? "ambient" : "auto";
+    try {
+      if (session.type !== type) session.type = type;
+    } catch (e) {
+      /* an unknown type on some future engine: keep the default */
+    }
+  }
+
   setMusicEnabled(on) {
     this.musicOn = on;
+    this.syncSession();
     if (!on) {
       this.token++;
       if (this.song) this.song.stop(0.4);
@@ -156,6 +196,15 @@ export class Director {
 
   setSfxEnabled(on) {
     this.sfxOn = on;
+    this.syncSession();
+    // Effects already sounding (a whoosh, a game-over run, reverb tails)
+    // are faded with the bus, not left to ring out after "off".
+    if (this.ready) {
+      const g = this.eng.sfxBus.gain;
+      const t = this.eng.ctx.currentTime;
+      g.cancelScheduledValues(t);
+      g.setTargetAtTime(on ? SFX_LEVEL : 0, t, on ? 0.005 : 0.04);
+    }
     this.idle();
   }
 
@@ -236,8 +285,11 @@ export class Director {
     };
   }
 
+  // A context that is not running (still starting, or stopped by iOS while
+  // the page stays visible) has a frozen clock: effects scheduled on it
+  // would all go off at once when it wakes.
   can() {
-    return this.sfxOn && this.ready && this.fx;
+    return this.sfxOn && this.ready && this.fx && this.eng.ctx.state === "running";
   }
 
   chord() {

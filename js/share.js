@@ -79,6 +79,7 @@ export function buildCard(frame, info) {
   g.shadowColor = info.accent;
   g.shadowBlur = 24;
   g.fillText("TRIS", pad + wTangle, top + 70);
+  const wLogo = wTangle + g.measureText("TRIS").width;
   g.shadowBlur = 0;
 
   g.font = "600 34px " + body;
@@ -88,9 +89,16 @@ export function buildCard(frame, info) {
   g.font = "500 30px " + body;
   g.fillText(info.url, pad, top + 196);
 
-  // The result, right-aligned.
+  // The result, right-aligned. A seven-figure score at full size would run
+  // into the logo on the same line, so long ones shrink to fit beside it.
   g.textAlign = "right";
-  g.font = "64px " + display;
+  const room = CARD_W - pad * 2 - wLogo - 36;
+  let size = 64;
+  g.font = size + "px " + display;
+  while (size > 28 && g.measureText(info.big).width > room) {
+    size -= 2;
+    g.font = size + "px " + display;
+  }
   g.fillStyle = info.text;
   g.shadowColor = info.accent2;
   g.shadowBlur = 30;

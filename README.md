@@ -45,8 +45,8 @@ worlds — each with its own soundtrack, composed live in your browser.
 - **Share and challenge** — a result card with a picture of your board, and a
   link that deals a friend exactly the same pieces with your score to beat
 - **A piece collection and 20 achievements** — discover all 24 shapes
-- **Plays on a phone** — on-screen buttons plus swipe and tap gestures;
-  installable and playable offline (PWA)
+- **Plays on a phone** — on-screen buttons plus swipe and tap gestures, held
+  upright or sideways; installable and playable offline (PWA)
 - **English and Czech** — the game and the guide pages
 - **Personal bests** per mode, kept in local storage, celebrated when you
   beat them
@@ -112,7 +112,7 @@ More: [how to play](https://robertlib.github.io/tangletris/how-to-play/) ·
 - **A look-ahead sequencer** on the audio clock with chord voice-leading and a
   motif-based melody generator
 - **Respects `prefers-reduced-motion`**, and the Motion toggle turns the board
-  physics off entirely
+  physics off entirely and slows the worlds down the same way
 - **Seeded deals** — the piece bag runs on a seeded generator and uses up the
   same amount of randomness per bag whatever is in it, so a seed reproduces a
   game's pieces; the Daily Tangle's seed is the date, no server involved

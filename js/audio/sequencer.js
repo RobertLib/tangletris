@@ -30,6 +30,26 @@ function hash(str) {
 }
 
 // "x--.x-x." → [{ step, dur, accent }]
+// The notes a part can play, for warming its string buffers. An arpeggio
+// picks from exactly `octaves` octaves above `low` (see playArp), variants
+// included; the other parts keep a generous margin above `high`.
+function warmRange(def) {
+  if (def.kind === "arp") {
+    const low = def.low || 60;
+    let octaves = def.octaves || 2;
+    for (const v of Object.values(def.variants || {})) octaves = Math.max(octaves, v.octaves || 0);
+    return [low, low + 12 * octaves - 1];
+  }
+  const lo = def.low || 48;
+  const hi = def.high || lo + 24;
+  return [lo, hi + 12];
+}
+
+// Hands the main thread back for a moment (offline renders don't mind).
+function breather() {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 function parseRhythm(str) {
   const out = [];
   for (let i = 0; i < str.length; i++) {
@@ -148,14 +168,20 @@ export class Song {
     }
     this.fxStrip = eng.createStrip(this.rack, { gain: 0.5, reverb: 0.6 });
     // Render the plucked strings for every scale note in range up front, so
-    // the first bars don't stall on buffer generation.
+    // the first bars don't stall on buffer generation — a few at a time,
+    // yielding in between: all at once they would hold up the main thread
+    // for a noticeable moment on a phone, mid-game at every level-up.
     const scale = new Set(MODES[tr.mode].map((iv) => (pitchClass(tr.key) + iv) % 12));
+    const notes = [];
     for (const name in this.parts) {
       const p = this.parts[name];
       if (!p.inst || !p.inst.warm) continue;
-      const lo = p.def.low || 48;
-      const hi = p.def.high || lo + 24;
-      for (let m = lo; m <= hi + 12; m++) if (scale.has(m % 12)) p.inst.warm(m);
+      const range = warmRange(p.def);
+      for (let m = range[0]; m <= range[1]; m++) if (scale.has(m % 12)) notes.push([p.inst, m]);
+    }
+    for (let i = 0; i < notes.length; i++) {
+      notes[i][0].warm(notes[i][1]);
+      if (i % 4 === 3) await breather();
     }
   }
 
