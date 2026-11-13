@@ -5,6 +5,7 @@
    ========================================================================== */
 import * as THREE from "three";
 import { NOISE_GLSL, starField, glowSprite, rng, clamp, lerp } from "./common.js";
+import { META } from "./meta.js";
 
 // Direction towards the sun, far off to the upper left. Its glow is drawn
 // a little closer in, just past the corner of the frame, so the light can
@@ -349,26 +350,7 @@ const METEOR_FRAG = /* glsl */ `
 /* ==================================================================== scene */
 
 export default {
-  id: "cosmos",
-  name: "Starfall",
-  track: "cosmos",
-  palette: {
-    accent: "#a78bfa",
-    accent2: "#fbbf5c",
-    text: "#eef0ff",
-    dim: "#a9a6d4",
-    panel: "rgba(16, 12, 42, 0.56)",
-    panel2: "rgba(8, 7, 26, 0.55)",
-    border: "rgba(167, 139, 250, 0.22)",
-    borderStrong: "rgba(190, 170, 255, 0.45)",
-    board: "#070618",
-    grid: "#7c6cff",
-    frame: "#a78bfa",
-    light: "#e9e6ff",
-    fade: "#06041a",
-  },
-  bloom: { strength: 0.8, radius: 0.6, threshold: 0.8 },
-  exposure: 1.0,
+  ...META.cosmos,
 
   create(env) {
     const scene = new THREE.Scene();

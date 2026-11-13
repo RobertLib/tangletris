@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>How to Play Tangletris: Controls, Scoring, Modes &amp; FAQ</title>
+    <meta name="description" content="Controls for keyboard and phone, the five game modes, the full scoring table, level speeds, tips for a higher score and quick answers to common questions.">
+    <meta name="author" content="Robert Libsansky">
+    <meta name="theme-color" content="#0c0620">
+    <meta name="color-scheme" content="dark">
+    <link rel="canonical" href="https://robertlib.github.io/tangletris/how-to-play/">
+    <link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/how-to-play/">
+    <link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/jak-hrat/">
+    <link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/how-to-play/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Tangletris">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="cs_CZ">
+    <meta property="og:title" content="How to Play Tangletris: Controls, Scoring, Modes &amp; FAQ">
+    <meta property="og:description" content="Controls for keyboard and phone, the five game modes, the full scoring table, level speeds, tips for a higher score and quick answers to common questions.">
+    <meta property="og:url" content="https://robertlib.github.io/tangletris/how-to-play/">
+    <meta property="og:image" content="https://robertlib.github.io/tangletris/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Tangletris: a glossy 3D falling-block board in front of a cherry-blossom lake at twilight">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="How to Play Tangletris: Controls, Scoring, Modes &amp; FAQ">
+    <meta name="twitter:description" content="Controls for keyboard and phone, the five game modes, the full scoring table, level speeds, tips for a higher score and quick answers to common questions.">
+    <meta name="twitter:image" content="https://robertlib.github.io/tangletris/og-image.jpg">
+
+    <link rel="icon" href="../icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+    <link rel="preload" href="../fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../pages.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Tangletris","item":"https://robertlib.github.io/tangletris/"},{"@type":"ListItem","position":2,"name":"How to play","item":"https://robertlib.github.io/tangletris/how-to-play/"}]}
+</script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is Tangletris free?","acceptedAnswer":{"@type":"Answer","text":"Yes. Tangletris is free to play in your browser, with no sign-up and nothing to download. It’s also open source under the MIT licence."}},{"@type":"Question","name":"Can I play Tangletris on my phone?","acceptedAnswer":{"@type":"Answer","text":"Yes, in any current mobile browser with WebGL 2. Swipe to move, swipe down to drop and tap to rotate — or use the buttons under the board."}},{"@type":"Question","name":"Can I install it and play offline?","acceptedAnswer":{"@type":"Answer","text":"Yes. Choose Install in Chrome or Edge, or Share → Add to Home Screen in Safari. Installed, Tangletris opens like an app and keeps working without a connection."}},{"@type":"Question","name":"Is this Tetris?","acceptedAnswer":{"@type":"Answer","text":"No. Tangletris is an independent Tetris-style falling-block game, not affiliated with The Tetris Company. The core idea — clearing full rows — is the same, but 17 of its 24 pieces are odd shapes the classic game doesn’t have, and it adds a tilting 3D board, six worlds and generative music."}},{"@type":"Question","name":"What is the Daily Tangle?","acceptedAnswer":{"@type":"Answer","text":"A three-minute game with the same pieces for everyone, refreshed at local midnight. Each day has its own tangle level, a streak counts the days you play in a row, and you can share your result. See the Daily Tangle page."}},{"@type":"Question","name":"How does challenging a friend work?","acceptedAnswer":{"@type":"Answer","text":"After a game, press Share. In Marathon, Sprint and Chaos the link carries the game’s seed, so your friend gets the same pieces and sees your score — or Sprint time — to beat."}},{"@type":"Question","name":"Where is my score saved?","acceptedAnswer":{"@type":"Answer","text":"In your browser’s local storage, on this device only. There are no accounts and no servers: your bests, Daily streak, piece collection and achievements stay with you — and clearing the site’s data resets them."}},{"@type":"Question","name":"Why does it need WebGL 2, and what if it lags?","acceptedAnswer":{"@type":"Answer","text":"The board and the worlds are real-time 3D. Tangletris adapts its quality automatically — antialiasing, then resolution, then bloom — to keep frames smooth. If it still feels heavy, press V to turn off the board’s tilt and motion."}},{"@type":"Question","name":"How is the music made?","acceptedAnswer":{"@type":"Answer","text":"It’s generated live in your browser with the Web Audio API — there are no recordings at all. Each world has its own track; melodies and fills are regenerated every loop, the tempo rises with your level and the sound effects play in key."}},{"@type":"Question","name":"How many pieces are there?","acceptedAnswer":{"@type":"Answer","text":"24: the seven classic tetrominoes plus 17 odd shapes, from the one-cell Dot to the eight-cell Rocket. See them all, with tips, on the pieces page."}}]}
+</script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="logo" href="../"><span class="logo-a">Tangle</span><span class="logo-b">tris</span><span class="sr-only"> – play the game</span></a>
+        <nav class="site-nav" aria-label="Main">
+          <ul>
+          <li><a class="nav-play" href="../">Play</a></li>
+          <li><a href="./" aria-current="page">How to play</a></li>
+          <li><a href="../pieces/">Pieces</a></li>
+          <li><a href="../worlds/">Worlds</a></li>
+          <li><a href="../daily/">Daily</a></li>
+          </ul>
+        </nav>
+        <a class="lang-switch" href="../cs/jak-hrat/" hreflang="cs" lang="cs" aria-label="Tato stránka česky">Česky</a>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap">
+        <div class="hero">
+          <nav class="crumbs" aria-label="Breadcrumb">
+            <ol>
+              <li><a href="../">Tangletris</a></li>
+              <li><span aria-current="page">How to play</span></li>
+            </ol>
+          </nav>
+          <h1>How to play Tangletris</h1>
+          <p class="lead">Tangletris plays like the falling-block puzzle you already know — move, rotate, clear full rows — with 17 extra shapes, a tilting 3D board and five ways to play. Here’s everything: controls, modes, scoring, speed, tips and quick answers.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-play" href="../">Play Tangletris</a>
+            <a class="btn btn-ghost" href="../?mode=daily">Today’s Daily Tangle</a>
+          </div>
+        </div>
+
+        <section class="section" aria-labelledby="goal">
+          <h2 id="goal">The goal</h2>
+          <div class="panel">
+            <p>Pieces fall into a board 10 cells wide and 20 tall. Move and rotate them so they fill complete horizontal rows: a full row disappears and everything above drops down. Clear four rows at once and you’ve scored a <strong>Tangle</strong>. The game ends when a new piece has no room to appear at the top.</p>
+            <p>Most pieces are the seven classic tetrominoes, but the bag also deals hearts, rockets, stars and other <a href="../pieces/">odd shapes</a> — more of them with every level.</p>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="controls">
+          <h2 id="controls">Controls</h2>
+          <div class="table-wrap">
+            <table>
+              <caption>Keyboard</caption>
+              <thead>
+                <tr><th scope="col">Key</th><th scope="col">Action</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="keys"><kbd>←</kbd> <kbd>→</kbd></td><td>Move left / right — hold to keep sliding</td></tr>
+                <tr><td class="keys"><kbd>↓</kbd></td><td>Soft drop (+1 point per row)</td></tr>
+                <tr><td class="keys"><kbd>↑</kbd> <kbd>X</kbd></td><td>Rotate clockwise</td></tr>
+                <tr><td class="keys"><kbd>Z</kbd></td><td>Rotate anticlockwise — it’s the key beside X, so Y on a German or Czech keyboard</td></tr>
+                <tr><td class="keys"><kbd>Space</kbd></td><td>Hard drop (+2 points per row)</td></tr>
+                <tr><td class="keys"><kbd>C</kbd> <kbd>Shift</kbd></td><td>Hold the piece for later (once per piece)</td></tr>
+                <tr><td class="keys"><kbd>P</kbd> <kbd>Esc</kbd></td><td>Pause</td></tr>
+                <tr><td class="keys"><kbd>R</kbd></td><td>Restart</td></tr>
+                <tr><td class="keys"><kbd>T</kbd></td><td>Change world: Journey, or one pinned world</td></tr>
+                <tr><td class="keys"><kbd>V</kbd></td><td>Board tilt and motion on / off</td></tr>
+                <tr><td class="keys"><kbd>M</kbd></td><td>Sound effects on / off</td></tr>
+                <tr><td class="keys"><kbd>N</kbd></td><td>Music on / off</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="grid grid-2">
+            <div class="card">
+              <h3>On a phone or tablet</h3>
+              <p>Swipe left or right on the board to move, swipe down to hard drop and tap to rotate. Or use the buttons under the board: hold, left, rotate, right, soft drop and hard drop.</p>
+            </div>
+            <div class="card">
+              <h3>The modern toolkit</h3>
+              <ul class="ticks small">
+                <li><strong>Ghost piece:</strong> a faint outline shows exactly where the piece will land.</li>
+                <li><strong>Hold:</strong> bank the current piece and swap it back later, once per piece.</li>
+                <li><strong>Three previews:</strong> you always see the next three pieces.</li>
+                <li><strong>Lock delay:</strong> a landed piece waits half a second before it locks, and each move or turn resets that, up to 15 times.</li>
+                <li><strong>Wall kicks:</strong> a blocked rotation tries nearby positions, so pieces turn even against a wall or the stack.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="modes">
+          <h2 id="modes">Five ways to play</h2>
+          <p class="section-intro">Pick a mode on the title screen with ← → or a tap. Every link below opens the game with that mode already selected.</p>
+          <ul class="grid">
+            <li class="card mode">
+              <h3>Marathon</h3>
+              <p>The original endless climb. A new level every 10 lines, a new world with each level, faster falls — and the odd shapes get more common every level until all of them are in play.</p>
+              <p><a class="more" href="../?mode=marathon">Play Marathon →</a></p>
+            </li>
+            <li class="card mode">
+              <h3>Daily Tangle</h3>
+              <p>3 minutes, and the same pieces for everyone today. The day’s tangle level is fixed for the whole run, a streak counts the days you play in a row, and you can share your result. <a href="../daily/">More about the Daily Tangle</a>.</p>
+              <p><a class="more" href="../?mode=daily">Play today’s Daily Tangle →</a></p>
+            </li>
+            <li class="card mode">
+              <h3>Sprint</h3>
+              <p>Clear 40 lines as fast as you can. Your time is your score, so hard drop everything you’re sure about.</p>
+              <p><a class="more" href="../?mode=sprint">Play Sprint →</a></p>
+            </li>
+            <li class="card mode">
+              <h3>Chaos</h3>
+              <p>Every odd shape is in the bag from the very first piece — the full tangle from the start, with the usual speed-up. Great practice for the hold slot. <a href="../pieces/">Meet the pieces</a>.</p>
+              <p><a class="more" href="../?mode=chaos">Play Chaos →</a></p>
+            </li>
+            <li class="card mode">
+              <h3>Zen</h3>
+              <p>No game over and no speed-up: when the stack fills up, it’s simply swept away. For the <a href="../worlds/">worlds</a> and the music.</p>
+              <p><a class="more" href="../?mode=zen">Play Zen →</a></p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="section" aria-labelledby="scoring">
+          <h2 id="scoring">Scoring</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th scope="col">What you do</th><th scope="col" class="num">Points</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Single — 1 line</th><td class="num">100 × level</td></tr>
+                <tr><th scope="row">Double — 2 lines</th><td class="num">300 × level</td></tr>
+                <tr><th scope="row">Triple — 3 lines</th><td class="num">500 × level</td></tr>
+                <tr><th scope="row"><strong>TANGLE!</strong> — 4 lines</th><td class="num">800 × level</td></tr>
+                <tr><th scope="row">Back-to-back Tangle</th><td class="num">× 1.5 — 1,200 × level</td></tr>
+                <tr><th scope="row">Combo</th><td class="num">+ 50 × combo × level</td></tr>
+                <tr><th scope="row">Perfect clear — empty board</th><td class="num">+ 2,000 × level</td></tr>
+                <tr><th scope="row">Soft drop</th><td class="num">+ 1 per row</td></tr>
+                <tr><th scope="row">Hard drop</th><td class="num">+ 2 per row</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>A combo starts when you clear lines with consecutive pieces: the second clearing piece in a row is combo 1, the third combo 2, and so on — any piece that clears nothing breaks the chain. Back-to-back counts only Tangles: two Tangles with no smaller clear in between.</p>
+          <p class="muted">Example: at level 3, a Tangle straight after another Tangle, as the third clear in a row, scores 800 × 3 × 1.5 + 50 × 2 × 3 = 3,900 points.</p>
+        </section>
+
+        <section class="section" aria-labelledby="levels">
+          <h2 id="levels">Levels and speed</h2>
+          <p class="section-intro">You go up a level every 10 lines. Each level cuts the time a piece takes to fall one row by 14.5% — from 800 ms at level 1 down to the 70 ms floor at level 17 — moves you to the next world in Marathon and pulls more <a href="../pieces/">odd shapes</a> into the bag.</p>
+          <div class="table-wrap">
+            <table>
+              <caption>Marathon</caption>
+              <thead>
+                <tr><th scope="col">Level</th><th scope="col">World</th><th scope="col" class="num">One row every</th><th scope="col" class="num">Odd-shape chance</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">1</th><td>Neon Drive</td><td class="num">800 ms</td><td class="num">40%</td></tr>
+                <tr><th scope="row">2</th><td>Deep Blue</td><td class="num">684 ms</td><td class="num">52%</td></tr>
+                <tr><th scope="row">3</th><td>Sakura</td><td class="num">585 ms</td><td class="num">64%</td></tr>
+                <tr><th scope="row">4</th><td>Frost</td><td class="num">500 ms</td><td class="num">76%</td></tr>
+                <tr><th scope="row">5</th><td>Starfall</td><td class="num">428 ms</td><td class="num">88%</td></tr>
+                <tr><th scope="row">6</th><td>Inferno</td><td class="num">366 ms</td><td class="num">100%</td></tr>
+                <tr><th scope="row">7</th><td>Neon Drive</td><td class="num">313 ms</td><td class="num">100%</td></tr>
+                <tr><th scope="row">8</th><td>Deep Blue</td><td class="num">267 ms</td><td class="num">100%</td></tr>
+                <tr><th scope="row">10</th><td>Frost</td><td class="num">195 ms</td><td class="num">100%</td></tr>
+                <tr><th scope="row">12</th><td>Inferno</td><td class="num">143 ms</td><td class="num">100%</td></tr>
+                <tr><th scope="row">14</th><td>Deep Blue</td><td class="num">104 ms</td><td class="num">100%</td></tr>
+                <tr><th scope="row">17+</th><td>Starfall</td><td class="num">70 ms</td><td class="num">100%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="muted">Odd-shape chance is the probability that each copy of an odd shape makes it into the next bag. It reaches 100% at level 6; Chaos starts there, the Daily Tangle fixes it for the day, and Zen keeps the speed of level 1.</p>
+        </section>
+
+        <section class="section" aria-labelledby="challenge">
+          <h2 id="challenge">Challenge a friend</h2>
+          <div class="grid grid-2">
+            <div class="card">
+              <h3>Share a result</h3>
+              <p>When a game ends, press <strong>Share</strong>: you get a picture of your board in its world, a line of text and a link. In Marathon, Sprint and Chaos the link carries the game’s seed, so whoever opens it gets the same pieces — and the game shows them your score, or your Sprint time, to beat.</p>
+            </div>
+            <div class="card">
+              <h3>Collection and achievements</h3>
+              <p>The game tracks which of the 24 pieces you’ve discovered and how often you’ve placed each one. Achievements mark the moments worth remembering: your first Tangle, a Tangle with an odd shape, a line cleared by the Rocket, an empty board, reaching the Inferno, a finished Sprint, a three-day Daily streak, all 24 pieces found — and more.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="tips">
+          <h2 id="tips">Tips for a higher score</h2>
+          <div class="panel">
+            <ul class="ticks">
+            <li>Keep the stack flat and leave one clean well on the side for the Line.</li>
+            <li>Bank an awkward shape in the hold slot instead of forcing it into a bad spot.</li>
+            <li>Clearing lines on consecutive drops builds a combo — every extra clear in the chain is worth more, and the chime climbs higher.</li>
+            <li>Four lines at once is a <strong>Tangle</strong>, and chaining two in a row multiplies the reward by 1.5.</li>
+            <li>Watch the ghost piece before you commit; hard drop only when the landing spot is right — it’s worth twice the points of a soft drop.</li>
+            <li>Sweeping the board completely empty pays a huge perfect-clear bonus: 2,000 × level.</li>
+            <li>When the music grows a nervous ticking and the frame glows red, the stack is near the top — dig out before anything else.</li>
+            <li>Leave a one-cell dip somewhere: the Plus, Heart, Rocket and Tree all need one, and they’re much nastier on a perfectly flat stack.</li>
+            <li>Read the three previews. A rare shape is announced three pieces ahead — time enough to build the spot it needs or empty your hold slot for it.</li>
+            <li>Save the Dot and Domino for repairs: they plug the single gaps that nothing else fits.</li>
+            <li>Use the lock delay: after a piece lands you have half a second, renewed with every move (up to 15 times), to slide it under an overhang.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="faq">
+          <h2 id="faq">Frequently asked questions</h2>
+          <div class="faq">
+            <div class="card">
+              <h3>Is Tangletris free?</h3>
+              <p>Yes. Tangletris is free to play in your browser, with no sign-up and nothing to download. It’s also open source under the MIT licence.</p>
+            </div>
+            <div class="card">
+              <h3>Can I play Tangletris on my phone?</h3>
+              <p>Yes, in any current mobile browser with WebGL 2. Swipe to move, swipe down to drop and tap to rotate — or use the buttons under the board.</p>
+            </div>
+            <div class="card">
+              <h3>Can I install it and play offline?</h3>
+              <p>Yes. Choose Install in Chrome or Edge, or Share → Add to Home Screen in Safari. Installed, Tangletris opens like an app and keeps working without a connection.</p>
+            </div>
+            <div class="card">
+              <h3>Is this Tetris?</h3>
+              <p>No. Tangletris is an independent Tetris-style falling-block game, not affiliated with The Tetris Company. The core idea — clearing full rows — is the same, but 17 of its 24 pieces are odd shapes the classic game doesn’t have, and it adds a tilting 3D board, six worlds and generative music.</p>
+            </div>
+            <div class="card">
+              <h3>What is the Daily Tangle?</h3>
+              <p>A three-minute game with the same pieces for everyone, refreshed at local midnight. Each day has its own tangle level, a streak counts the days you play in a row, and you can share your result. See the <a href="../daily/">Daily Tangle page</a>.</p>
+            </div>
+            <div class="card">
+              <h3>How does challenging a friend work?</h3>
+              <p>After a game, press Share. In Marathon, Sprint and Chaos the link carries the game’s seed, so your friend gets the same pieces and sees your score — or Sprint time — to beat.</p>
+            </div>
+            <div class="card">
+              <h3>Where is my score saved?</h3>
+              <p>In your browser’s local storage, on this device only. There are no accounts and no servers: your bests, Daily streak, piece collection and achievements stay with you — and clearing the site’s data resets them.</p>
+            </div>
+            <div class="card">
+              <h3>Why does it need WebGL 2, and what if it lags?</h3>
+              <p>The board and the worlds are real-time 3D. Tangletris adapts its quality automatically — antialiasing, then resolution, then bloom — to keep frames smooth. If it still feels heavy, press V to turn off the board’s tilt and motion.</p>
+            </div>
+            <div class="card">
+              <h3>How is the music made?</h3>
+              <p>It’s generated live in your browser with the Web Audio API — there are no recordings at all. Each world has its own track; melodies and fills are regenerated every loop, the tempo rises with your level and the sound effects play in key.</p>
+            </div>
+            <div class="card">
+              <h3>How many pieces are there?</h3>
+              <p>24: the seven classic tetrominoes plus 17 odd shapes, from the one-cell Dot to the eight-cell Rocket. See them all, with tips, on the <a href="../pieces/">pieces page</a>.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section cta-final panel" aria-labelledby="cta-final">
+          <h2 id="cta-final">That’s all you need</h2>
+          <p>The rest you’ll learn the first time a Rocket drops in. It’s free, it runs in your browser, and it’s one click away.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-play" href="../">Play Tangletris</a>
+            <a class="btn btn-ghost" href="../?mode=sprint">Try a 40-line Sprint</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <nav class="footer-nav" aria-label="Site">
+          <ul>
+          <li><a class="" href="../">Play</a></li>
+          <li><a href="./" aria-current="page">How to play</a></li>
+          <li><a href="../pieces/">Pieces</a></li>
+          <li><a href="../worlds/">Worlds</a></li>
+          <li><a href="../daily/">Daily</a></li>
+          </ul>
+        </nav>
+        <p>Made by Robert Libsansky · Free and open source under the <a href="https://github.com/RobertLib/tangletris/blob/main/LICENSE">MIT licence</a> · <a href="https://github.com/RobertLib/tangletris">Source code on GitHub</a></p>
+        <p class="tm">Tetris® is a trademark of The Tetris Company. Tangletris is an independent game and is not affiliated with it.</p>
+      </div>
+    </footer>
+  </body>
+</html>

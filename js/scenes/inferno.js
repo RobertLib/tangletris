@@ -6,6 +6,7 @@
    ========================================================================== */
 import * as THREE from "three";
 import { NOISE_GLSL, glowSprite, hdr, rng, lerp, clamp } from "./common.js";
+import { META } from "./meta.js";
 
 const FOG = "#2a0b05";
 const HAZE = "#6a1c06";
@@ -262,26 +263,7 @@ function rockMaterial(color, uniforms, key, extraDecl, extraCode) {
 /* ----------------------------------------------------------------- scene */
 
 export default {
-  id: "inferno",
-  name: "Inferno",
-  track: "inferno",
-  palette: {
-    accent: "#ff6a1a",
-    accent2: "#ffc53d",
-    text: "#fff1e6",
-    dim: "#cfa592",
-    panel: "rgba(38, 12, 7, 0.58)",
-    panel2: "rgba(22, 7, 5, 0.55)",
-    border: "rgba(255, 120, 50, 0.22)",
-    borderStrong: "rgba(255, 176, 72, 0.45)",
-    board: "#120605",
-    grid: "#ff5a1f",
-    frame: "#ff6a1a",
-    light: "#ffe0c4",
-    fade: "#1a0503",
-  },
-  bloom: { strength: 0.75, radius: 0.5, threshold: 0.9 },
-  exposure: 1.0,
+  ...META.inferno,
 
   create(env) {
     const scene = new THREE.Scene();

@@ -38,8 +38,18 @@ worlds — each with its own soundtrack, composed live in your browser.
   lock delay with move reset, DAS/ARR key repeat and a shuffled weighted bag
 - **Scoring with depth** — combos, back-to-back bonuses and a fat perfect-clear
   reward
-- **Plays on a phone** — on-screen buttons plus swipe and tap gestures
-- **Personal bests** kept in local storage, celebrated when you beat them
+- **Five modes** — Marathon (the endless climb), the **Daily Tangle** (three
+  minutes, the same pieces for everyone today, with a streak), Sprint (40
+  lines against the clock), Chaos (every odd shape from the first piece) and
+  Zen (no game over, no speed-up)
+- **Share and challenge** — a result card with a picture of your board, and a
+  link that deals a friend exactly the same pieces with your score to beat
+- **A piece collection and 20 achievements** — discover all 24 shapes
+- **Plays on a phone** — on-screen buttons plus swipe and tap gestures;
+  installable and playable offline (PWA)
+- **English and Czech** — the game and the guide pages
+- **Personal bests** per mode, kept in local storage, celebrated when you
+  beat them
 
 ## 🎮 How to Play
 
@@ -68,6 +78,17 @@ completely pays a perfect-clear bonus.
 In **Journey** mode (the default) every level takes you to the next world. The
 world button pins one world instead.
 
+Pick the game mode on the title screen (`←` `→` and `Enter`). Links can open a
+mode directly: `?mode=daily`, `?mode=sprint`, … A shared challenge looks like
+`?mode=sprint&seed=k3j9a1&beat=151400` — the seed is the deal, `beat` the
+score (or Sprint time in ms) to beat.
+
+More: [how to play](https://robertlib.github.io/tangletris/how-to-play/) ·
+[all pieces](https://robertlib.github.io/tangletris/pieces/) ·
+[the worlds](https://robertlib.github.io/tangletris/worlds/) ·
+[the Daily Tangle](https://robertlib.github.io/tangletris/daily/) ·
+[česky](https://robertlib.github.io/tangletris/cs/)
+
 ## 🚀 Play Online
 
 **[▶️ Play Tangletris Now](https://robertlib.github.io/tangletris/)**
@@ -92,19 +113,33 @@ world button pins one world instead.
   motif-based melody generator
 - **Respects `prefers-reduced-motion`**, and the Motion toggle turns the board
   physics off entirely
+- **Seeded deals** — the piece bag runs on a seeded generator and uses up the
+  same amount of randomness per bag whatever is in it, so a seed reproduces a
+  game's pieces; the Daily Tangle's seed is the date, no server involved
+- **Worlds load lazily** — only the first world's code is fetched at boot, the
+  rest follow in the background
+- **Offline** — a small service worker (network first for the site, cache
+  first for the version-pinned CDN)
 
 ### Project layout
 
 ```
-index.html, styles.css
-js/main.js            wiring: HUD, input, layout, frame loop
-js/game.js            rules, scoring, events (no rendering, no sound)
-js/pieces.js          the piece catalogue
-js/view/              stage (renderer, bloom, transitions), board, previews
-js/scenes/            the six worlds + shared helpers
-js/audio/             engine, theory, sequencer, tracks, director + sfx
-fonts/                self-hosted web fonts (SIL Open Font License)
-dev/                  development harnesses (see below)
+index.html, styles.css    the game (English)
+cs/index.html             the game in Czech — keep its markup in step with index.html
+js/main.js                wiring: menus, HUD, input, records, layout, frame loop
+js/game.js                rules, modes, scoring, events (no rendering, no sound)
+js/pieces.js              the piece catalogue (with Czech names)
+js/i18n.js                every string the game writes, English and Czech
+js/rng.js, js/daily.js    seeded randomness; the Daily Tangle calendar
+js/progress.js            piece collection and achievements
+js/share.js               result card, share sheet / clipboard
+js/view/                  stage (renderer, bloom, transitions), board, previews
+js/scenes/                the six worlds, meta.js (names, palettes), shared helpers
+js/audio/                 engine, theory, sequencer, tracks, director + sfx
+sw.js, manifest.webmanifest, icons/   offline support and install
+pieces/, worlds/, how-to-play/, daily/, cs/*/   guide pages (generated)
+fonts/                    self-hosted web fonts (SIL Open Font License)
+dev/                      development harnesses and generators (see below)
 ```
 
 ### Running locally
@@ -125,6 +160,11 @@ Two harnesses help when working on the worlds and the music:
 - `dev/audio.html?track=cosmos&secs=60` renders a soundtrack offline, reports
   its loudness and spectrum and offers it as a WAV download (`solo=pad,bass`
   isolates parts)
+
+Two generators write checked-in files, so the site itself never needs a build:
+
+- `node dev/build-pages.mjs` — the guide pages (EN + CS) and `sitemap.xml`
+- `node dev/make-icons.mjs` — `icon.svg` and the PNG app icons
 
 ## 📱 Browser Support
 
@@ -150,4 +190,7 @@ Created by **RobertLib** - [GitHub Profile](https://github.com/RobertLib)
 
 ---
 
-**Keywords**: tetris, 3d tetris, game, online, free, puzzle, browser game, javascript, three.js, webgl, generative music, html5, retro game, classic game
+Tetris® is a trademark of The Tetris Company. Tangletris is an independent
+game and is not affiliated with it.
+
+**Keywords**: tetris-style, 3d puzzle, falling blocks, weird shapes, daily puzzle, game, online, free, browser game, javascript, three.js, webgl, generative music, html5, pwa

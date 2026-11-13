@@ -5,6 +5,7 @@
    ========================================================================== */
 import * as THREE from "three";
 import { NOISE_GLSL, gradientSky, starField, glowSprite, hdr, rng, clamp } from "./common.js";
+import { META } from "./meta.js";
 
 /* ------------------------------------------------- CPU noise for terrain */
 
@@ -380,26 +381,7 @@ const ICE_FRAG =
 /* ------------------------------------------------------------------------ */
 
 export default {
-  id: "frost",
-  name: "Frost",
-  track: "frost",
-  palette: {
-    accent: "#4ff0b4",
-    accent2: "#a78bfa",
-    text: "#e8f7ff",
-    dim: "#93b7c9",
-    panel: "rgba(6, 22, 36, 0.56)",
-    panel2: "rgba(4, 14, 28, 0.52)",
-    border: "rgba(150, 220, 255, 0.18)",
-    borderStrong: "rgba(110, 255, 200, 0.4)",
-    board: "#051220",
-    grid: "#5fd0ff",
-    frame: "#4ff0b4",
-    light: "#e2f4ff",
-    fade: "#030c18",
-  },
-  bloom: { strength: 0.75, radius: 0.6, threshold: 0.78 },
-  exposure: 1.0,
+  ...META.frost,
 
   create(env) {
     const scene = new THREE.Scene();

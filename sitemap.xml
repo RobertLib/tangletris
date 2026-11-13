@@ -1,9 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://robertlib.github.io/tangletris/</loc>
-    <lastmod>2026-10-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-11-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/"/>
+  </url>
+  <url>
+    <loc>https://robertlib.github.io/tangletris/cs/</loc>
+    <lastmod>2026-11-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/"/>
+  </url>
+  <url>
+    <loc>https://robertlib.github.io/tangletris/how-to-play/</loc>
+    <lastmod>2026-11-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/how-to-play/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/jak-hrat/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/how-to-play/"/>
+  </url>
+  <url>
+    <loc>https://robertlib.github.io/tangletris/cs/jak-hrat/</loc>
+    <lastmod>2026-11-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/how-to-play/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/jak-hrat/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/how-to-play/"/>
+  </url>
+  <url>
+    <loc>https://robertlib.github.io/tangletris/pieces/</loc>
+    <lastmod>2026-11-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/pieces/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/tvary/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/pieces/"/>
+  </url>
+  <url>
+    <loc>https://robertlib.github.io/tangletris/cs/tvary/</loc>
+    <lastmod>2026-11-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/pieces/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/tvary/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/pieces/"/>
+  </url>
+  <url>
+    <loc>https://robertlib.github.io/tangletris/worlds/</loc>
+    <lastmod>2026-11-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/worlds/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/svety/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/worlds/"/>
+  </url>
+  <url>
+    <loc>https://robertlib.github.io/tangletris/cs/svety/</loc>
+    <lastmod>2026-11-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/worlds/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/svety/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/worlds/"/>
+  </url>
+  <url>
+    <loc>https://robertlib.github.io/tangletris/daily/</loc>
+    <lastmod>2026-11-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/daily/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/denni/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/daily/"/>
+  </url>
+  <url>
+    <loc>https://robertlib.github.io/tangletris/cs/denni/</loc>
+    <lastmod>2026-11-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/daily/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/denni/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/daily/"/>
   </url>
 </urlset>

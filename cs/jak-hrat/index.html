@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Jak hrát Tangletris: ovládání, body, režimy a FAQ</title>
+    <meta name="description" content="Hra ve stylu Tetrisu online zdarma: ovládání na klávesnici i mobilu, pět herních režimů, bodování, rychlost levelů, tipy a odpovědi na časté otázky.">
+    <meta name="author" content="Robert Libsansky">
+    <meta name="theme-color" content="#0c0620">
+    <meta name="color-scheme" content="dark">
+    <link rel="canonical" href="https://robertlib.github.io/tangletris/cs/jak-hrat/">
+    <link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/how-to-play/">
+    <link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/jak-hrat/">
+    <link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/how-to-play/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Tangletris">
+    <meta property="og:locale" content="cs_CZ">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:title" content="Jak hrát Tangletris: ovládání, body, režimy a FAQ">
+    <meta property="og:description" content="Hra ve stylu Tetrisu online zdarma: ovládání na klávesnici i mobilu, pět herních režimů, bodování, rychlost levelů, tipy a odpovědi na časté otázky.">
+    <meta property="og:url" content="https://robertlib.github.io/tangletris/cs/jak-hrat/">
+    <meta property="og:image" content="https://robertlib.github.io/tangletris/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Tangletris: lesklá 3D deska s padajícími kostkami před jezerem se sakurami za soumraku">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Jak hrát Tangletris: ovládání, body, režimy a FAQ">
+    <meta name="twitter:description" content="Hra ve stylu Tetrisu online zdarma: ovládání na klávesnici i mobilu, pět herních režimů, bodování, rychlost levelů, tipy a odpovědi na časté otázky.">
+    <meta name="twitter:image" content="https://robertlib.github.io/tangletris/og-image.jpg">
+
+    <link rel="icon" href="../../icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+    <link rel="preload" href="../../fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../../fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../../fonts/space-grotesk-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../../pages.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Tangletris","item":"https://robertlib.github.io/tangletris/cs/"},{"@type":"ListItem","position":2,"name":"Jak hrát","item":"https://robertlib.github.io/tangletris/cs/jak-hrat/"}]}
+</script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Je Tangletris zdarma?","acceptedAnswer":{"@type":"Answer","text":"Ano. Tangletris hraješ zdarma přímo v prohlížeči, bez registrace a bez stahování. Navíc je open source pod licencí MIT."}},{"@type":"Question","name":"Dá se Tangletris hrát na mobilu?","acceptedAnswer":{"@type":"Answer","text":"Ano, v každém aktuálním mobilním prohlížeči s WebGL 2. Přejetím prstu kostku posuneš, přejetím dolů shodíš a klepnutím otočíš – nebo použij tlačítka pod deskou."}},{"@type":"Question","name":"Jde hru nainstalovat a hrát offline?","acceptedAnswer":{"@type":"Answer","text":"Ano. V Chromu nebo Edgi zvol Instalovat, v Safari Sdílet → Přidat na plochu. Nainstalovaný Tangletris se otevírá jako aplikace a funguje i bez připojení."}},{"@type":"Question","name":"Je to Tetris?","acceptedAnswer":{"@type":"Answer","text":"Ne. Tangletris je nezávislá hra ve stylu Tetrisu a se společností The Tetris Company nijak nesouvisí. Princip – mazání plných řad – je stejný, ale 17 z 24 kostek jsou divné tvary, které klasická hra nemá, a navíc tu je nakláněná 3D deska, šest světů a generovaná hudba."}},{"@type":"Question","name":"Co je Denní Tangle?","acceptedAnswer":{"@type":"Answer","text":"Tříminutová hra se stejnými kostkami pro všechny, která se obnovuje o půlnoci místního času. Každý den má vlastní zamotanost, série počítá dny, kdy hraješ v kuse, a výsledek můžeš sdílet. Víc na stránce Denní výzva."}},{"@type":"Question","name":"Jak vyzvat kamaráda?","acceptedAnswer":{"@type":"Answer","text":"Po hře stiskni Sdílet. V Maratonu, Sprintu a Chaosu nese odkaz seed hry, takže kamarád dostane stejné kostky a uvidí tvoje skóre – nebo čas ve Sprintu –, které má překonat."}},{"@type":"Question","name":"Kde se ukládá moje skóre?","acceptedAnswer":{"@type":"Answer","text":"V místním úložišti prohlížeče, jen na tomhle zařízení. Žádné účty ani servery: rekordy, série Denní výzvy, sbírka tvarů i úspěchy zůstávají u tebe – a smazáním dat webu zmizí."}},{"@type":"Question","name":"Proč hra potřebuje WebGL 2 a co když se seká?","acceptedAnswer":{"@type":"Answer","text":"Deska i světy jsou 3D v reálném čase. Tangletris si kvalitu přizpůsobuje sám – vyhlazování, pak rozlišení, nakonec bloom –, aby hra běžela plynule. Pokud je to pořád těžké, klávesou V vypneš náklon a pohyb desky."}},{"@type":"Question","name":"Jak vzniká hudba?","acceptedAnswer":{"@type":"Answer","text":"Generuje se živě v prohlížeči přes Web Audio API, bez jediné nahrávky. Každý svět má vlastní skladbu; melodie a přechody se při každém opakování vytvoří znovu, tempo roste s levelem a zvukové efekty hrají v tónině."}},{"@type":"Question","name":"Kolik je ve hře tvarů?","acceptedAnswer":{"@type":"Answer","text":"24: sedm klasických tetromin a 17 divných tvarů, od jednopolíčkové Tečky po osmipolíčkovou Raketu. Všechny i s radami najdeš na stránce Tvary."}}]}
+</script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Přeskočit na obsah</a>
+
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="logo" href="../"><span class="logo-a">Tangle</span><span class="logo-b">tris</span><span class="sr-only"> – hrát hru</span></a>
+        <nav class="site-nav" aria-label="Hlavní">
+          <ul>
+          <li><a class="nav-play" href="../">Hrát</a></li>
+          <li><a href="./" aria-current="page">Jak hrát</a></li>
+          <li><a href="../tvary/">Tvary</a></li>
+          <li><a href="../svety/">Světy</a></li>
+          <li><a href="../denni/">Denní výzva</a></li>
+          </ul>
+        </nav>
+        <a class="lang-switch" href="../../how-to-play/" hreflang="en" lang="en" aria-label="This page in English">English</a>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap">
+        <div class="hero">
+          <nav class="crumbs" aria-label="Drobečková navigace">
+            <ol>
+              <li><a href="../">Tangletris</a></li>
+              <li><span aria-current="page">Jak hrát</span></li>
+            </ol>
+          </nav>
+          <h1>Jak hrát Tangletris</h1>
+          <p class="lead">Tangletris je logická hra ve stylu Tetrisu, kterou hraješ online zdarma přímo v prohlížeči: posouváš, otáčíš a mažeš plné řady – jen se 17 tvary navíc, nakláněnou 3D deskou a pěti režimy. Tady je všechno: ovládání, režimy, body, rychlost, tipy a rychlé odpovědi.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-play" href="../">Hrát Tangletris</a>
+            <a class="btn btn-ghost" href="../?mode=daily">Dnešní Denní Tangle</a>
+          </div>
+        </div>
+
+        <section class="section" aria-labelledby="goal">
+          <h2 id="goal">Cíl hry</h2>
+          <div class="panel">
+            <p>Kostky padají do desky široké 10 a vysoké 20 polí. Posouvej je a otáčej tak, aby vyplnily celé vodorovné řady: plná řada zmizí a všechno nad ní spadne dolů. Smažeš-li čtyři řady naráz, máš <strong>Tangle</strong>. Hra končí, když se nová kostka nemá kam vejít.</p>
+            <p>Většinu tvoří sedm klasických tetromin, ale balíček rozdává i srdce, rakety, hvězdy a další <a href="../tvary/">divné tvary</a> – s každým levelem víc.</p>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="controls">
+          <h2 id="controls">Ovládání</h2>
+          <div class="table-wrap">
+            <table>
+              <caption>Klávesnice</caption>
+              <thead>
+                <tr><th scope="col">Klávesa</th><th scope="col">Akce</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="keys"><kbd>←</kbd> <kbd>→</kbd></td><td>Posun doleva / doprava – podržením kostka klouže dál</td></tr>
+                <tr><td class="keys"><kbd>↓</kbd></td><td>Zrychlený pád (+1 bod za řádek)</td></tr>
+                <tr><td class="keys"><kbd>↑</kbd> <kbd>X</kbd></td><td>Otočit doprava</td></tr>
+                <tr><td class="keys"><kbd>Y</kbd></td><td>Otočit doleva – je to klávesa vedle X, takže na anglické klávesnici Z</td></tr>
+                <tr><td class="keys"><kbd>Mezerník</kbd></td><td>Shodit dolů (+2 body za řádek)</td></tr>
+                <tr><td class="keys"><kbd>C</kbd> <kbd>Shift</kbd></td><td>Odložit kostku na později (jednou za kostku)</td></tr>
+                <tr><td class="keys"><kbd>P</kbd> <kbd>Esc</kbd></td><td>Pauza</td></tr>
+                <tr><td class="keys"><kbd>R</kbd></td><td>Začít znovu</td></tr>
+                <tr><td class="keys"><kbd>T</kbd></td><td>Změnit svět: Cesta, nebo jeden vybraný svět</td></tr>
+                <tr><td class="keys"><kbd>V</kbd></td><td>Náklon a pohyb desky zap. / vyp.</td></tr>
+                <tr><td class="keys"><kbd>M</kbd></td><td>Zvukové efekty zap. / vyp.</td></tr>
+                <tr><td class="keys"><kbd>N</kbd></td><td>Hudba zap. / vyp.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="grid grid-2">
+            <div class="card">
+              <h3>Na mobilu a tabletu</h3>
+              <p>Přejetím prstu po desce doleva nebo doprava kostku posuneš, přejetím dolů ji shodíš a klepnutím otočíš. Nebo použij tlačítka pod deskou: odložit, doleva, otočit, doprava, zrychlit pád a shodit.</p>
+            </div>
+            <div class="card">
+              <h3>Co ti pomáhá</h3>
+              <ul class="ticks small">
+                <li><strong>Stín kostky:</strong> průsvitný obrys ukazuje, kam přesně kostka dopadne.</li>
+                <li><strong>Odložení (Hold):</strong> aktuální kostku si schovej a vyměň ji později, jednou za kostku.</li>
+                <li><strong>Tři kostky dopředu:</strong> vždycky vidíš, jaké tři kostky přijdou.</li>
+                <li><strong>Prodleva před zamknutím:</strong> dopadlá kostka čeká půl sekundy, než se zamkne, a každý posun nebo otočení ten čas obnoví, až 15×.</li>
+                <li><strong>Odrazy od stěn:</strong> když otočení narazí, hra zkusí blízké pozice, takže kostka se otočí i u stěny nebo u hromady.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="modes">
+          <h2 id="modes">Pět způsobů hry</h2>
+          <p class="section-intro">Režim vybereš na úvodní obrazovce šipkami ← → nebo klepnutím. Každý odkaz níže otevře hru s už vybraným režimem.</p>
+          <ul class="grid">
+            <li class="card mode">
+              <h3>Maraton</h3>
+              <p>Původní nekonečný výstup. Každých 10 řad nový level, s každým levelem nový svět a rychlejší pád – a divných tvarů přibývá, až jsou ve hře všechny.</p>
+              <p><a class="more" href="../?mode=marathon">Hrát Maraton →</a></p>
+            </li>
+            <li class="card mode">
+              <h3>Denní Tangle</h3>
+              <p>3 minuty a pro všechny dnes stejné kostky. Zamotanost dne platí po celou hru, série počítá dny, kdy hraješ v kuse, a výsledek můžeš sdílet. <a href="../denni/">Víc o Denním Tanglu</a>.</p>
+              <p><a class="more" href="../?mode=daily">Zahrát dnešní Denní Tangle →</a></p>
+            </li>
+            <li class="card mode">
+              <h3>Sprint</h3>
+              <p>Smaž 40 řad co nejrychleji. Skóre je tvůj čas, takže všechno, co máš jisté, rovnou shazuj.</p>
+              <p><a class="more" href="../?mode=sprint">Hrát Sprint →</a></p>
+            </li>
+            <li class="card mode">
+              <h3>Chaos</h3>
+              <p>Všechny divné tvary jsou v balíčku hned od první kostky – plná spleť od začátku a k tomu obvyklé zrychlování. Skvělý trénink na odkládání. <a href="../tvary/">Poznej tvary</a>.</p>
+              <p><a class="more" href="../?mode=chaos">Hrát Chaos →</a></p>
+            </li>
+            <li class="card mode">
+              <h3>Zen</h3>
+              <p>Žádný konec hry a žádné zrychlování: když se deska zaplní, prostě se smete. Pro <a href="../svety/">světy</a> a hudbu.</p>
+              <p><a class="more" href="../?mode=zen">Hrát Zen →</a></p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="section" aria-labelledby="scoring">
+          <h2 id="scoring">Bodování</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th scope="col">Co uděláš</th><th scope="col" class="num">Body</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Jedna řada</th><td class="num">100 × level</td></tr>
+                <tr><th scope="row">Dvě řady</th><td class="num">300 × level</td></tr>
+                <tr><th scope="row">Tři řady</th><td class="num">500 × level</td></tr>
+                <tr><th scope="row"><strong>TANGLE!</strong> – 4 řady</th><td class="num">800 × level</td></tr>
+                <tr><th scope="row">Tangle back-to-back</th><td class="num">× 1,5 – 1 200 × level</td></tr>
+                <tr><th scope="row">Kombo</th><td class="num">+ 50 × kombo × level</td></tr>
+                <tr><th scope="row">Čistá deska – vyprázdníš celou desku</th><td class="num">+ 2 000 × level</td></tr>
+                <tr><th scope="row">Zrychlený pád</th><td class="num">+ 1 za řádek</td></tr>
+                <tr><th scope="row">Shození</th><td class="num">+ 2 za řádek</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Kombo vzniká, když mažeš řady kostkami hned po sobě: druhá mazající kostka v řadě je kombo 1, třetí kombo 2 a tak dál – kostka, která nic nesmaže, řetěz přeruší. Back-to-back platí jen pro Tangly: dva Tangly bez menšího mazání mezi nimi.</p>
+          <p class="muted">Příklad: na levelu 3 vynese Tangle hned po jiném Tanglu, jako třetí mazání v řadě, 800 × 3 × 1,5 + 50 × 2 × 3 = 3 900 bodů.</p>
+        </section>
+
+        <section class="section" aria-labelledby="levels">
+          <h2 id="levels">Levely a rychlost</h2>
+          <p class="section-intro">Každých 10 řad postoupíš o level. S každým levelem se doba, za kterou kostka spadne o řádek, zkrátí o 14,5 % – z 800 ms na levelu 1 až na spodní hranici 70 ms na levelu 17 –, v Maratonu se přesuneš do dalšího světa a do balíčku se dostane víc <a href="../tvary/">divných tvarů</a>.</p>
+          <div class="table-wrap">
+            <table>
+              <caption>Maraton</caption>
+              <thead>
+                <tr><th scope="col">Level</th><th scope="col">Svět</th><th scope="col" class="num">Pád o řádek za</th><th scope="col" class="num">Šance divných tvarů</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">1</th><td>Neon Drive</td><td class="num">800 ms</td><td class="num">40 %</td></tr>
+                <tr><th scope="row">2</th><td>Deep Blue</td><td class="num">684 ms</td><td class="num">52 %</td></tr>
+                <tr><th scope="row">3</th><td>Sakura</td><td class="num">585 ms</td><td class="num">64 %</td></tr>
+                <tr><th scope="row">4</th><td>Frost</td><td class="num">500 ms</td><td class="num">76 %</td></tr>
+                <tr><th scope="row">5</th><td>Starfall</td><td class="num">428 ms</td><td class="num">88 %</td></tr>
+                <tr><th scope="row">6</th><td>Inferno</td><td class="num">366 ms</td><td class="num">100 %</td></tr>
+                <tr><th scope="row">7</th><td>Neon Drive</td><td class="num">313 ms</td><td class="num">100 %</td></tr>
+                <tr><th scope="row">8</th><td>Deep Blue</td><td class="num">267 ms</td><td class="num">100 %</td></tr>
+                <tr><th scope="row">10</th><td>Frost</td><td class="num">195 ms</td><td class="num">100 %</td></tr>
+                <tr><th scope="row">12</th><td>Inferno</td><td class="num">143 ms</td><td class="num">100 %</td></tr>
+                <tr><th scope="row">14</th><td>Deep Blue</td><td class="num">104 ms</td><td class="num">100 %</td></tr>
+                <tr><th scope="row">17+</th><td>Starfall</td><td class="num">70 ms</td><td class="num">100 %</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="muted">Šance divných tvarů je pravděpodobnost, že se každá kopie divného tvaru dostane do příštího balíčku. Na levelu 6 dosáhne 100 %; Chaos tam rovnou začíná, Denní Tangle ji na celý den zafixuje a Zen drží rychlost levelu 1.</p>
+        </section>
+
+        <section class="section" aria-labelledby="challenge">
+          <h2 id="challenge">Vyzvi kamaráda</h2>
+          <div class="grid grid-2">
+            <div class="card">
+              <h3>Sdílej výsledek</h3>
+              <p>Po konci hry stiskni <strong>Sdílet</strong>: dostaneš obrázek své desky v jejím světě, krátký text a odkaz. V Maratonu, Sprintu a Chaosu nese odkaz seed hry, takže kdo ho otevře, dostane stejné kostky – a hra mu ukáže tvoje skóre nebo čas ve Sprintu, které má překonat.</p>
+            </div>
+            <div class="card">
+              <h3>Sbírka a úspěchy</h3>
+              <p>Hra si vede přehled, které z 24 tvarů máš objevené a kolikrát byl který položen. Úspěchy oslavují chvíle, které stojí za zapamatování: první Tangle, Tangle divným tvarem, řadu smazanou Raketou, prázdnou desku, cestu až do Inferna, dokončený Sprint, tři dny Denní výzvy po sobě, všech 24 objevených tvarů – a další.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="tips">
+          <h2 id="tips">Tipy na vyšší skóre</h2>
+          <div class="panel">
+            <ul class="ticks">
+            <li>Drž hromadu rovnou a u kraje si nech jednu čistou šachtu pro Čáru.</li>
+            <li>Nešikovný tvar radši odlož, než ho cpát na špatné místo.</li>
+            <li>Mazání řad kostkami hned po sobě staví kombo – každé další mazání v řetězu má větší cenu a zvonkohra stoupá výš.</li>
+            <li>Čtyři řady naráz jsou <strong>Tangle</strong> a dva Tangly po sobě násobí odměnu 1,5×.</li>
+            <li>Než se rozhodneš, sleduj stín kostky; shazuj, až když místo dopadu sedí – shození vynese dvakrát víc bodů než zrychlený pád.</li>
+            <li>Úplně vyprázdněná deska vynese obří bonus: 2 000 × level.</li>
+            <li>Když se v hudbě ozve nervózní tikání a rám zčervená, hromada je u stropu – nejdřív se vyhrab.</li>
+            <li>Nech si někde důlek o jedno pole: potřebuje ho Plus, Srdce, Raketa i Strom a na úplně rovné hromadě jsou mnohem zlejší.</li>
+            <li>Čti náhled tří dalších kostek. Vzácný tvar se ohlásí tři kostky dopředu – dost času připravit mu místo nebo uvolnit odkládací políčko.</li>
+            <li>Tečku a Domino si šetři na opravy: ucpou jednotlivé mezery, kam se nic jiného nevejde.</li>
+            <li>Využij prodlevu před zamknutím: po dopadu máš půl sekundy, která se s každým pohybem obnoví (až 15×), na zasunutí kostky pod převis.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="faq">
+          <h2 id="faq">Časté otázky</h2>
+          <div class="faq">
+            <div class="card">
+              <h3>Je Tangletris zdarma?</h3>
+              <p>Ano. Tangletris hraješ zdarma přímo v prohlížeči, bez registrace a bez stahování. Navíc je open source pod licencí MIT.</p>
+            </div>
+            <div class="card">
+              <h3>Dá se Tangletris hrát na mobilu?</h3>
+              <p>Ano, v každém aktuálním mobilním prohlížeči s WebGL 2. Přejetím prstu kostku posuneš, přejetím dolů shodíš a klepnutím otočíš – nebo použij tlačítka pod deskou.</p>
+            </div>
+            <div class="card">
+              <h3>Jde hru nainstalovat a hrát offline?</h3>
+              <p>Ano. V Chromu nebo Edgi zvol Instalovat, v Safari Sdílet → Přidat na plochu. Nainstalovaný Tangletris se otevírá jako aplikace a funguje i bez připojení.</p>
+            </div>
+            <div class="card">
+              <h3>Je to Tetris?</h3>
+              <p>Ne. Tangletris je nezávislá hra ve stylu Tetrisu a se společností The Tetris Company nijak nesouvisí. Princip – mazání plných řad – je stejný, ale 17 z 24 kostek jsou divné tvary, které klasická hra nemá, a navíc tu je nakláněná 3D deska, šest světů a generovaná hudba.</p>
+            </div>
+            <div class="card">
+              <h3>Co je Denní Tangle?</h3>
+              <p>Tříminutová hra se stejnými kostkami pro všechny, která se obnovuje o půlnoci místního času. Každý den má vlastní zamotanost, série počítá dny, kdy hraješ v kuse, a výsledek můžeš sdílet. Víc na stránce <a href="../denni/">Denní výzva</a>.</p>
+            </div>
+            <div class="card">
+              <h3>Jak vyzvat kamaráda?</h3>
+              <p>Po hře stiskni Sdílet. V Maratonu, Sprintu a Chaosu nese odkaz seed hry, takže kamarád dostane stejné kostky a uvidí tvoje skóre – nebo čas ve Sprintu –, které má překonat.</p>
+            </div>
+            <div class="card">
+              <h3>Kde se ukládá moje skóre?</h3>
+              <p>V místním úložišti prohlížeče, jen na tomhle zařízení. Žádné účty ani servery: rekordy, série Denní výzvy, sbírka tvarů i úspěchy zůstávají u tebe – a smazáním dat webu zmizí.</p>
+            </div>
+            <div class="card">
+              <h3>Proč hra potřebuje WebGL 2 a co když se seká?</h3>
+              <p>Deska i světy jsou 3D v reálném čase. Tangletris si kvalitu přizpůsobuje sám – vyhlazování, pak rozlišení, nakonec bloom –, aby hra běžela plynule. Pokud je to pořád těžké, klávesou V vypneš náklon a pohyb desky.</p>
+            </div>
+            <div class="card">
+              <h3>Jak vzniká hudba?</h3>
+              <p>Generuje se živě v prohlížeči přes Web Audio API, bez jediné nahrávky. Každý svět má vlastní skladbu; melodie a přechody se při každém opakování vytvoří znovu, tempo roste s levelem a zvukové efekty hrají v tónině.</p>
+            </div>
+            <div class="card">
+              <h3>Kolik je ve hře tvarů?</h3>
+              <p>24: sedm klasických tetromin a 17 divných tvarů, od jednopolíčkové Tečky po osmipolíčkovou Raketu. Všechny i s radami najdeš na stránce <a href="../tvary/">Tvary</a>.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section cta-final panel" aria-labelledby="cta-final">
+          <h2 id="cta-final">Víc vědět nemusíš</h2>
+          <p>Zbytek se naučíš, až poprvé přiletí Raketa. Je to zdarma, běží to v prohlížeči a je to na jedno kliknutí.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-play" href="../">Hrát Tangletris</a>
+            <a class="btn btn-ghost" href="../?mode=sprint">Zkus Sprint na 40 řad</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <nav class="footer-nav" aria-label="Stránky">
+          <ul>
+          <li><a class="" href="../">Hrát</a></li>
+          <li><a href="./" aria-current="page">Jak hrát</a></li>
+          <li><a href="../tvary/">Tvary</a></li>
+          <li><a href="../svety/">Světy</a></li>
+          <li><a href="../denni/">Denní výzva</a></li>
+          </ul>
+        </nav>
+        <p>Autor: Robert Libsansky · Zdarma a open source pod <a href="https://github.com/RobertLib/tangletris/blob/main/LICENSE">licencí MIT</a> · <a href="https://github.com/RobertLib/tangletris">Zdrojový kód na GitHubu</a></p>
+        <p class="tm">Tetris® je ochranná známka společnosti The Tetris Company. Tangletris je nezávislá hra a s ní není nijak spojena.</p>
+      </div>
+    </footer>
+  </body>
+</html>

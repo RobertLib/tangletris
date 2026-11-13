@@ -5,6 +5,7 @@
    ========================================================================== */
 import * as THREE from "three";
 import { NOISE_GLSL, hdr, rng, clamp } from "./common.js";
+import { META } from "./meta.js";
 
 const SURFACE_Y = 120;
 const FLOOR_Y = -30;
@@ -206,26 +207,7 @@ function whaleGeometry() {
 }
 
 export default {
-  id: "ocean",
-  name: "Deep Blue",
-  track: "ocean",
-  palette: {
-    accent: "#3ee8f2",
-    accent2: "#ff8ad8",
-    text: "#e6fbff",
-    dim: "#8fb9cf",
-    panel: "rgba(4, 24, 48, 0.56)",
-    panel2: "rgba(2, 14, 34, 0.55)",
-    border: "rgba(120, 225, 255, 0.18)",
-    borderStrong: "rgba(130, 240, 255, 0.42)",
-    board: "#03122a",
-    grid: "#43d6ee",
-    frame: "#3ee8f2",
-    light: "#d4f6ff",
-    fade: "#021028",
-  },
-  bloom: { strength: 0.8, radius: 0.6, threshold: 0.72 },
-  exposure: 1.0,
+  ...META.ocean,
 
   create(env) {
     const scene = new THREE.Scene();

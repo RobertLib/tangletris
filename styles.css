@@ -460,8 +460,11 @@ kbd {
 .overlay {
   position: absolute;
   inset: 4%;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
   padding: 12px;
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--panel-2) 55%, transparent);
@@ -488,6 +491,7 @@ kbd {
   text-align: center;
   width: 100%;
   max-width: 300px;
+  margin: auto;
 }
 
 .overlay h2 {
@@ -594,6 +598,296 @@ kbd {
   margin-top: 14px;
   font-size: 0.68rem;
   color: var(--text-dim);
+}
+
+body.touch .overlay .hint.keys {
+  display: none;
+}
+
+.overlay .sub.small {
+  font-size: 0.74rem;
+  margin-bottom: 12px;
+}
+
+/* --- Mode picker ----------------------------------------------------------- */
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.mode-chip {
+  padding: 7px 10px;
+  font-family: var(--font-display);
+  font-size: 0.48rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.mode-chip:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.mode-chip[aria-pressed="true"] {
+  color: #0a0a12;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 18px var(--accent-soft);
+}
+
+.mode-desc {
+  min-height: 3.2em;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+
+.mode-desc strong {
+  color: var(--text);
+}
+
+.mode-tag {
+  margin: -6px 0 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.challenge {
+  margin-bottom: 14px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent-2) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent);
+}
+
+.challenge.won {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.btn-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn-row .btn {
+  margin-top: 8px;
+}
+
+.menu-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-small {
+  padding: 9px 11px;
+  font-size: 0.48rem;
+}
+
+.btn-small em {
+  font-style: normal;
+  color: var(--text-dim);
+}
+
+/* --- Pieces & achievements sheet ------------------------------------------- */
+.sheet {
+  width: min(560px, calc(100vw - 24px));
+  max-height: min(86vh, 860px);
+  margin: auto;
+  padding: 0;
+  color: var(--text);
+  background: color-mix(in srgb, var(--panel-2) 88%, #000);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  overscroll-behavior: contain;
+}
+
+.sheet::backdrop {
+  background: rgba(4, 2, 12, 0.6);
+  backdrop-filter: blur(3px);
+}
+
+.sheet-body {
+  padding: 18px 18px 22px;
+}
+
+.sheet-head {
+  position: sticky;
+  top: -18px;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -18px -18px 6px;
+  padding: 18px 18px 10px;
+  background: inherit;
+  background: color-mix(in srgb, var(--panel-2) 92%, #000);
+  border-bottom: 1px solid var(--border);
+}
+
+.sheet-head h2 {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.sheet-head .sub {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.sheet-group {
+  margin: 16px 0 8px;
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.piece-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+  gap: 8px;
+}
+
+.piece-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 6px 10px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.piece-card strong {
+  font-size: 0.8rem;
+}
+
+.piece-card span {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.piece-card.locked strong {
+  color: var(--text-dim);
+}
+
+.shape {
+  display: grid;
+  grid-template-columns: repeat(var(--w), 12px);
+  grid-auto-rows: 12px;
+  gap: 2px;
+  min-height: 54px;
+  align-content: center;
+}
+
+.shape i {
+  border-radius: 3px;
+  background: var(--c);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.piece-card.locked .shape i {
+  box-shadow: none;
+}
+
+.sheet-more {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.sheet-more a {
+  color: var(--accent);
+}
+
+.award-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.award {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.award-icon {
+  flex: none;
+  width: 34px;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+.award div {
+  flex: 1;
+  min-width: 0;
+}
+
+.award strong {
+  display: block;
+  font-size: 0.86rem;
+}
+
+.award div span {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+}
+
+.award-check {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.award.locked {
+  opacity: 0.55;
+}
+
+.award.locked .award-icon {
+  filter: grayscale(1);
 }
 
 /* --- "Now playing" toast --------------------------------------------------- */
@@ -782,6 +1076,63 @@ body.touch .touchpad {
   color: var(--accent-2);
 }
 
+.info-card a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+.faq dt {
+  margin-top: 12px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.faq dt:first-child {
+  margin-top: 0;
+}
+
+.faq dd {
+  margin-top: 4px;
+  font-size: 0.84rem;
+  line-height: 1.65;
+  color: var(--text-dim);
+}
+
+.info-links ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-links li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
+
+.info-links li a {
+  font-weight: 600;
+}
+
+.info-links li span {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.lang-btn {
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+}
+
 /* --- Footer --------------------------------------------------------------- */
 .site-footer {
   position: relative;
@@ -795,6 +1146,25 @@ body.touch .touchpad {
   background: var(--panel-2);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+}
+
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  margin-bottom: 12px;
+}
+
+.footer-nav a {
+  color: var(--text);
+  text-underline-offset: 3px;
+}
+
+.site-footer .fine {
+  margin-top: 8px;
+  font-size: 0.68rem;
+  opacity: 0.75;
 }
 
 /* --- Responsive ----------------------------------------------------------- */
@@ -906,6 +1276,73 @@ body.touch .touchpad {
   .panel {
     padding: 7px 8px;
   }
+}
+
+/* --- Czech ------------------------------------------------------------------
+   Press Start 2P squeezes accented capitals into its 8×8 cell, so Ř, Š, Í or Ú
+   come out looking like lowercase. Czech labels therefore use Space Grotesk;
+   the logo and the numbers stay pixel. Sizes are scaled to match the pixel
+   font's cap height. */
+html[lang="cs"]
+  :is(
+    .icon-btn,
+    .panel-title,
+    .stat-label,
+    .popup.big,
+    .overlay h2,
+    .overlay .record,
+    .result-grid span,
+    .btn,
+    .mode-chip,
+    .sheet-head h2,
+    .sheet-group,
+    .now-playing strong,
+    .info-card h2
+  ) {
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+html[lang="cs"] .icon-btn {
+  font-size: 0.74rem;
+}
+html[lang="cs"] .panel-title {
+  font-size: 0.68rem;
+}
+html[lang="cs"] .stat-label {
+  font-size: 0.62rem;
+}
+html[lang="cs"] .overlay h2 {
+  font-size: clamp(1.1rem, 5vw, 1.45rem);
+  letter-spacing: 0.02em;
+}
+html[lang="cs"] .overlay .record {
+  font-size: 0.8rem;
+}
+html[lang="cs"] .result-grid span {
+  font-size: 0.56rem;
+}
+html[lang="cs"] .btn {
+  font-size: 0.84rem;
+}
+html[lang="cs"] .btn-small {
+  font-size: 0.66rem;
+}
+html[lang="cs"] .mode-chip {
+  font-size: 0.66rem;
+}
+html[lang="cs"] .sheet-head h2 {
+  font-size: 1.05rem;
+}
+html[lang="cs"] .sheet-group {
+  font-size: 0.68rem;
+}
+html[lang="cs"] .now-playing strong {
+  font-size: 0.74rem;
+}
+html[lang="cs"] .info-card h2 {
+  font-size: 0.95rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

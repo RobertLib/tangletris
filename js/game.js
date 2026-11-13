@@ -4,6 +4,7 @@
    3D view and the audio engine subscribe to.
    ========================================================================== */
 import { PIECES, CLASSIC_COUNT, rotateCW, rotateCCW } from "./pieces.js";
+import { mulberry32, randomSeed } from "./rng.js";
 
 export const COLS = 10;
 export const ROWS = 20;
@@ -19,6 +20,9 @@ export const CLEAR_ANIM_MS = 340;
 // caused the clear.
 const DROP_BUFFER_MS = 120;
 export const DEATH_ANIM_MS = 1800;
+// A run that ends well (Sprint goal, Daily time) gets a shorter beat before
+// the result card: there is no collapse to watch.
+export const FINISH_ANIM_MS = 1300;
 // Short grace period so the keypress or tap that ended the run cannot also
 // dismiss the result screen.
 const RESTART_LOCKOUT = 450;
@@ -86,7 +90,24 @@ export const state = {
   deathT: 0,
   newRecord: false,
   overSince: 0,
+  seed: 0, // the deal: same seed, same pieces
+  time: 0, // ms spent playing this run (pauses excluded)
+  result: null, // how the run ended: "topout" | "goal" | "time"
+  sweeps: 0, // Zen: how many times a full stack was swept away
+  lastLocked: -1, // id of the piece that locked last (the one that cleared)
 };
+
+// What the current mode changes about the rules. Set by start().
+const rules = {
+  tangle: null, // fixed tangle ratio, or null for the level ramp
+  lineGoal: 0, // finish after this many lines (Sprint)
+  timeLimit: 0, // finish after this many ms (Daily)
+  zen: false, // no top-out: a full stack is swept away instead
+  fixedSpeed: false, // gravity stays at level 1
+};
+
+// The bag's randomness. Replaced by a seeded generator on every start.
+let rng = Math.random;
 
 const input = {
   left: false,
@@ -115,29 +136,33 @@ export function canRestart() {
 // Most of the odd shapes bury a hole under themselves no matter how well
 // you place them, so a board full of them chokes within a couple of minutes.
 // The bag therefore starts mostly classic and gets tangled as you level up —
-// that ramp is the difficulty curve.
-function tangleRatio() {
-  return Math.min(1, 0.4 + (state.level - 1) * 0.12);
+// that ramp is the difficulty curve. Some modes pin the ratio instead.
+export function tangleRatio(level) {
+  if (rules.tangle !== null) return rules.tangle;
+  return Math.min(1, 0.4 + ((level || state.level) - 1) * 0.12);
 }
 
+// Every copy of every odd piece draws a number whether it makes the bag or
+// not, and the shuffle runs over all the slots before the empty ones are
+// dropped. So each bag uses up exactly the same amount of randomness: two
+// players on one seed get the same classic order, and the same odd pieces
+// wherever their levels agree — a challenge link stays a fair fight.
 function refillBag() {
   const tangle = tangleRatio();
-  const bag = [];
+  const pool = [];
   for (let i = 0; i < PIECES.length; i++) {
-    let copies = PIECES[i].weight;
-    if (i >= CLASSIC_COUNT) {
-      copies = 0;
-      for (let n = 0; n < PIECES[i].weight; n++) if (Math.random() < tangle) copies++;
+    for (let n = 0; n < PIECES[i].weight; n++) {
+      const keep = i < CLASSIC_COUNT || rng() < tangle;
+      pool.push(keep ? i : -1);
     }
-    for (let n = 0; n < copies; n++) bag.push(i);
   }
-  for (let i = bag.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = bag[i];
-    bag[i] = bag[j];
-    bag[j] = tmp;
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const tmp = pool[i];
+    pool[i] = pool[j];
+    pool[j] = tmp;
   }
-  state.bag = bag;
+  state.bag = pool.filter((id) => id >= 0);
 }
 
 function nextId() {
@@ -193,7 +218,8 @@ export function danger() {
 /* -------------------------------------------------------------- game flow */
 
 function dropInterval() {
-  return Math.max(70, Math.round(800 * Math.pow(0.855, state.level - 1)));
+  const level = rules.fixedSpeed ? 1 : state.level;
+  return Math.max(70, Math.round(800 * Math.pow(0.855, level - 1)));
 }
 
 function spawn() {
@@ -224,8 +250,23 @@ function placeSpawn(id) {
       return;
     }
   }
+  if (rules.zen) {
+    sweep();
+    placeSpawn(id);
+    return;
+  }
   state.piece = p;
   gameOver();
+}
+
+// Zen has no game over: a stack that reaches the top is swept away whole.
+function sweep() {
+  const old = state.board;
+  state.board = emptyBoard();
+  state.combo = -1;
+  state.backToBack = false;
+  state.sweeps++;
+  emit("sweep", { board: old });
 }
 
 // Moving or turning a grounded piece buys it time, up to a limit. Only a new
@@ -335,10 +376,14 @@ function lockPiece(hard) {
     }
   }
   state.piece = null;
+  state.lastLocked = p.id;
   emit("lock", { id: p.id, cells: cells, hard: !!hard });
 
   if (!anyVisible) {
-    gameOver();
+    if (rules.zen) {
+      sweep();
+      spawn();
+    } else gameOver();
     return;
   }
 
@@ -408,9 +453,14 @@ function finishClear() {
     combo: state.combo,
     b2b: b2b,
     perfect: empty,
+    piece: state.lastLocked,
   });
   if (levelUp) emit("levelUp", { level: state.level });
   emit("score");
+  if (rules.lineGoal && state.lines >= rules.lineGoal) {
+    finish("goal");
+    return;
+  }
   spawn();
   runBuffered();
 }
@@ -427,13 +477,33 @@ function runBuffered() {
 
 function gameOver() {
   state.mode = "dying";
+  state.result = "topout";
   state.deathT = 0;
   state.buffered = null;
   releaseAll();
   emit("gameOver");
 }
 
-export function start() {
+// The run reached its goal: Sprint lines or the Daily clock.
+function finish(reason) {
+  state.mode = "dying";
+  state.result = reason;
+  state.deathT = 0;
+  state.buffered = null;
+  releaseAll();
+  emit("finish", { reason: reason });
+}
+
+// opts: { seed, tangle, lineGoal, timeLimit, zen, fixedSpeed } — all optional.
+export function start(opts) {
+  opts = opts || {};
+  rules.tangle = typeof opts.tangle === "number" ? opts.tangle : null;
+  rules.lineGoal = opts.lineGoal || 0;
+  rules.timeLimit = opts.timeLimit || 0;
+  rules.zen = !!opts.zen;
+  rules.fixedSpeed = !!opts.fixedSpeed;
+  state.seed = (opts.seed >>> 0) || randomSeed();
+  rng = mulberry32(state.seed);
   state.board = emptyBoard();
   state.bag = [];
   state.queue = [];
@@ -448,6 +518,10 @@ export function start() {
   state.buffered = null;
   state.deathT = 0;
   state.newRecord = false;
+  state.time = 0;
+  state.result = null;
+  state.sweeps = 0;
+  state.lastLocked = -1;
   releaseAll();
 
   refillBag();
@@ -456,6 +530,25 @@ export function start() {
   emit("start");
   spawn();
   emit("score");
+}
+
+// Back to the title screen: the run is dropped and the well emptied.
+export function quit() {
+  state.mode = "title";
+  state.board = emptyBoard();
+  state.piece = null;
+  state.hold = null;
+  state.holdUsed = false;
+  state.queue = [];
+  state.clearing = null;
+  state.buffered = null;
+  state.result = null;
+  state.score = 0;
+  state.lines = 0;
+  state.level = 1;
+  state.time = 0;
+  releaseAll();
+  emit("quit");
 }
 
 export function togglePause() {
@@ -543,8 +636,21 @@ function handleAutoRepeat(dt) {
 
 /* ------------------------------------------------------------------- tick */
 
+// Time left in a timed run, in ms (0 when the mode has no clock).
+export function timeLeft() {
+  return rules.timeLimit ? Math.max(0, rules.timeLimit - state.time) : 0;
+}
+
 export function update(dt, now) {
   if (state.mode === "playing") {
+    state.time += dt;
+    // A clear that started in time still counts: the clock only ends the run
+    // between pieces.
+    if (rules.timeLimit && state.time >= rules.timeLimit && !state.clearing) {
+      state.time = rules.timeLimit;
+      finish("time");
+      return;
+    }
     if (state.clearing) {
       if (input.dir !== 0) input.dasT = Math.max(0, input.dasT - dt);
       state.clearing.t += dt;
@@ -580,7 +686,7 @@ export function update(dt, now) {
     }
   } else if (state.mode === "dying") {
     state.deathT += dt;
-    if (state.deathT >= DEATH_ANIM_MS) {
+    if (state.deathT >= (state.result === "topout" ? DEATH_ANIM_MS : FINISH_ANIM_MS)) {
       state.mode = "over";
       state.overSince = now;
       emit("over");

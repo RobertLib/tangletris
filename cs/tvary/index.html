@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Všech 24 tvarů Tangletris: srdce, raketa, hvězda i kostka</title>
+    <meta name="description" content="Hra ve stylu Tetrisu s divnými tvary: 7 klasických kostek a 17 podivností – srdce, hvězda, raketa, kostka i pentomina. U každého tvaru rada, kam s ním.">
+    <meta name="author" content="Robert Libsansky">
+    <meta name="theme-color" content="#0c0620">
+    <meta name="color-scheme" content="dark">
+    <link rel="canonical" href="https://robertlib.github.io/tangletris/cs/tvary/">
+    <link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/pieces/">
+    <link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/tvary/">
+    <link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/pieces/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Tangletris">
+    <meta property="og:locale" content="cs_CZ">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:title" content="Všech 24 tvarů Tangletris: srdce, raketa, hvězda i kostka">
+    <meta property="og:description" content="Hra ve stylu Tetrisu s divnými tvary: 7 klasických kostek a 17 podivností – srdce, hvězda, raketa, kostka i pentomina. U každého tvaru rada, kam s ním.">
+    <meta property="og:url" content="https://robertlib.github.io/tangletris/cs/tvary/">
+    <meta property="og:image" content="https://robertlib.github.io/tangletris/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Tangletris: lesklá 3D deska s padajícími kostkami před jezerem se sakurami za soumraku">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Všech 24 tvarů Tangletris: srdce, raketa, hvězda i kostka">
+    <meta name="twitter:description" content="Hra ve stylu Tetrisu s divnými tvary: 7 klasických kostek a 17 podivností – srdce, hvězda, raketa, kostka i pentomina. U každého tvaru rada, kam s ním.">
+    <meta name="twitter:image" content="https://robertlib.github.io/tangletris/og-image.jpg">
+
+    <link rel="icon" href="../../icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+    <link rel="preload" href="../../fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../../fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../../fonts/space-grotesk-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../../pages.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Tangletris","item":"https://robertlib.github.io/tangletris/cs/"},{"@type":"ListItem","position":2,"name":"Tvary","item":"https://robertlib.github.io/tangletris/cs/tvary/"}]}
+</script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ItemList","name":"Tvary v Tangletris","numberOfItems":24,"itemListElement":[{"@type":"ListItem","position":1,"name":"Čára","url":"https://robertlib.github.io/tangletris/cs/tvary/#cara"},{"@type":"ListItem","position":2,"name":"Čtverec","url":"https://robertlib.github.io/tangletris/cs/tvary/#ctverec"},{"@type":"ListItem","position":3,"name":"Téčko","url":"https://robertlib.github.io/tangletris/cs/tvary/#tecko"},{"@type":"ListItem","position":4,"name":"Eska","url":"https://robertlib.github.io/tangletris/cs/tvary/#eska"},{"@type":"ListItem","position":5,"name":"Zetko","url":"https://robertlib.github.io/tangletris/cs/tvary/#zetko"},{"@type":"ListItem","position":6,"name":"Jéčko","url":"https://robertlib.github.io/tangletris/cs/tvary/#jecko"},{"@type":"ListItem","position":7,"name":"Elko","url":"https://robertlib.github.io/tangletris/cs/tvary/#elko"},{"@type":"ListItem","position":8,"name":"Tečka","url":"https://robertlib.github.io/tangletris/cs/tvary/#tecka"},{"@type":"ListItem","position":9,"name":"Domino","url":"https://robertlib.github.io/tangletris/cs/tvary/#domino"},{"@type":"ListItem","position":10,"name":"Roh","url":"https://robertlib.github.io/tangletris/cs/tvary/#roh"},{"@type":"ListItem","position":11,"name":"Srdce","url":"https://robertlib.github.io/tangletris/cs/tvary/#srdce"},{"@type":"ListItem","position":12,"name":"Plus","url":"https://robertlib.github.io/tangletris/cs/tvary/#plus"},{"@type":"ListItem","position":13,"name":"Pohár","url":"https://robertlib.github.io/tangletris/cs/tvary/#pohar"},{"@type":"ListItem","position":14,"name":"Cikcak","url":"https://robertlib.github.io/tangletris/cs/tvary/#cikcak"},{"@type":"ListItem","position":15,"name":"Žirafa","url":"https://robertlib.github.io/tangletris/cs/tvary/#zirafa"},{"@type":"ListItem","position":16,"name":"Dílek","url":"https://robertlib.github.io/tangletris/cs/tvary/#dilek"},{"@type":"ListItem","position":17,"name":"Šipka","url":"https://robertlib.github.io/tangletris/cs/tvary/#sipka"},{"@type":"ListItem","position":18,"name":"Blesk","url":"https://robertlib.github.io/tangletris/cs/tvary/#blesk"},{"@type":"ListItem","position":19,"name":"Strom","url":"https://robertlib.github.io/tangletris/cs/tvary/#strom"},{"@type":"ListItem","position":20,"name":"Hvězda","url":"https://robertlib.github.io/tangletris/cs/tvary/#hvezda"},{"@type":"ListItem","position":21,"name":"Písmeno A","url":"https://robertlib.github.io/tangletris/cs/tvary/#pismeno-a"},{"@type":"ListItem","position":22,"name":"Spirála","url":"https://robertlib.github.io/tangletris/cs/tvary/#spirala"},{"@type":"ListItem","position":23,"name":"Raketa","url":"https://robertlib.github.io/tangletris/cs/tvary/#raketa"},{"@type":"ListItem","position":24,"name":"Kostka","url":"https://robertlib.github.io/tangletris/cs/tvary/#kostka"}]}
+</script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Přeskočit na obsah</a>
+
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="logo" href="../"><span class="logo-a">Tangle</span><span class="logo-b">tris</span><span class="sr-only"> – hrát hru</span></a>
+        <nav class="site-nav" aria-label="Hlavní">
+          <ul>
+          <li><a class="nav-play" href="../">Hrát</a></li>
+          <li><a href="../jak-hrat/">Jak hrát</a></li>
+          <li><a href="./" aria-current="page">Tvary</a></li>
+          <li><a href="../svety/">Světy</a></li>
+          <li><a href="../denni/">Denní výzva</a></li>
+          </ul>
+        </nav>
+        <a class="lang-switch" href="../../pieces/" hreflang="en" lang="en" aria-label="This page in English">English</a>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap">
+        <div class="hero">
+          <nav class="crumbs" aria-label="Drobečková navigace">
+            <ol>
+              <li><a href="../">Tangletris</a></li>
+              <li><span aria-current="page">Tvary</span></li>
+            </ol>
+          </nav>
+          <h1>24 tvarů, 17 z nich divných</h1>
+          <p class="lead">Tangletris ti rozdá sedm kostek, které znáš – a pak přiletí srdce, raketa nebo křivá hvězda. Tady je všech 24 tvarů, jak často který přichází a kam s ním.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-play" href="../">Hrát Tangletris</a>
+            <a class="btn btn-ghost" href="../?mode=chaos">Režim Chaos: všechny tvary hned</a>
+          </div>
+        </div>
+
+        <section class="section" aria-labelledby="intro">
+          <h2 id="intro">Sedm klasik a spleť divných tvarů</h2>
+          <div class="panel">
+            <p>Hraje se jako padající kostky, které znáš – dokud se to nezamotá. Prvních sedm kostek jsou klasická tetromina po čtyřech polích a nesou celou hru. Zbylých 17 tvoří spleť: tvary od jednopolíčkové Tečky po osmipolíčkovou Raketu, včetně skutečných pentomin (Plus, Pohár, Cikcak, Žirafa a Dílek) a několika kousků, které by žádná klasická sada nepřipustila – třeba Kostky, jejíž pole se dotýkají jen rohy.</p>
+            <p>Většina divných tvarů pod sebou nechá díru, ať je položíš sebepečlivěji, a deska plná jen jich by se ucpala během pár minut. Proto přibývají postupně a proto tu odkládání (Hold) znamená mnohem víc než v klasické hře.</p>
+            <p>Hra si vede sbírku všech objevených kostek – svou najdeš ve hře pod tlačítkem <strong>Tvary</strong> – takže vzácné kousky stojí za lov.</p>
+            <h3>Slovníček k radám</h3>
+            <dl class="glossary">
+            <div><dt>Šachta</dt><dd>Volný sloupec široký jedno pole, obvykle u kraje, který čeká na dlouhou kostku.</dd></div>
+            <div><dt>Důlek</dt><dd>Jeden sloupec o pole nižší než oba sousedé.</dd></div>
+            <div><dt>Schod</dt><dd>Dva sousední sloupce, jejichž výška se liší o jedno pole.</dd></div>
+            <div><dt>Výstupek</dt><dd>Jeden sloupec o pole vyšší než oba sousedé.</dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="ramp">
+          <h2 id="ramp">Jak spleť houstne</h2>
+          <p class="section-intro">Každý balíček obsahuje celou klasickou sedmičku – 5 Čar a po 4 kopiích od ostatních klasických tvarů. Každý divný tvar přidá tolik kopií, kolik je jeho váha, jenže v Maratonu se každá kopie do balíčku dostane jen s pravděpodobností, která roste s levelem: 40 % na levelu 1, s každým dalším o 12 procentních bodů víc, až se od levelu 6 dostane do balíčku každá. Křivka obtížnosti je tak zapečená přímo v balíčku.</p>
+          <div class="table-wrap">
+            <table>
+              <caption>Divné tvary v balíčku Maratonu</caption>
+              <thead>
+                <tr><th scope="col">Level</th><th scope="col" class="num">Šance každé divné kopie</th><th scope="col" class="num">Podíl divných kostek</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">1</th><td class="num">40 %</td><td class="num">29 %</td></tr>
+                <tr><th scope="row">2</th><td class="num">52 %</td><td class="num">35 %</td></tr>
+                <tr><th scope="row">3</th><td class="num">64 %</td><td class="num">40 %</td></tr>
+                <tr><th scope="row">4</th><td class="num">76 %</td><td class="num">44 %</td></tr>
+                <tr><th scope="row">5</th><td class="num">88 %</td><td class="num">48 %</td></tr>
+                <tr><th scope="row">6+</th><td class="num">100 %</td><td class="num">51 %</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="muted"><a href="../denni/">Denní Tangle</a> drží šanci dne po celou hru někde mezi 50 % a 100 % a <a href="../?mode=chaos">režim Chaos</a> dá do balíčku všechny divné tvary hned od první kostky.</p>
+        </section>
+
+        <section class="section" aria-labelledby="g-classic">
+          <h2 id="g-classic">Klasická sedmička</h2>
+          <p class="section-intro">Sedm tetromin po čtyřech polích. Jsou v každém balíčku, takže na všech levelech tvoří páteř tvé hromady.</p>
+          <ul class="grid grid-2">
+            <li class="card piece" id="cara">
+              <div class="piece-art"><svg viewBox="0 0 80 20" width="80" height="20" role="img" aria-label="Čára: 4 pole, šířka 4, výška 1"><g fill="#22d3ee"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="1" width="18" height="18" rx="4"/><rect x="43" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="61" y="1" width="18" height="18" rx="4"/><rect x="63" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="63" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🟦</span> Čára</h3>
+                <ul class="tags">
+                  <li class="tag tag-classic">Klasika</li>
+                  <li class="tag">4 pole</li>
+                  <li class="tag">5 kopií v každém balíčku</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Jediná rovná čtyřka. Nech si u kraje volnou šachtu a Čáru si schovej na Tangle; naležato zakryje rovný úsek široký čtyři pole.</p>
+              <p class="freq">Zhruba 1 z 8 kostek na levelu 1, 1 z 12 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="ctverec">
+              <div class="piece-art"><svg viewBox="0 0 40 40" width="40" height="40" role="img" aria-label="Čtverec: 4 pole, šířka 2, výška 2"><g fill="#fbbf24"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🟨</span> Čtverec</h3>
+                <ul class="tags">
+                  <li class="tag tag-classic">Klasika</li>
+                  <li class="tag">4 pole</li>
+                  <li class="tag">4 kopie v každém balíčku</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Otáčení s ním nic neudělá, jde jen o to kam: na rovnou plochu širokou dvě pole. Na schodu pod sebou vždycky zazdí díru – když nemáš dva rovné sloupce, odlož ho.</p>
+              <p class="freq">Zhruba 1 z 10 kostek na levelu 1, 1 z 15 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="tecko">
+              <div class="piece-art"><svg viewBox="0 0 60 40" width="60" height="40" role="img" aria-label="Téčko: 4 pole, šířka 3, výška 2"><g fill="#c084fc"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="1" width="18" height="18" rx="4"/><rect x="43" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🟪</span> Téčko</h3>
+                <ul class="tags">
+                  <li class="tag tag-classic">Klasika</li>
+                  <li class="tag">4 pole</li>
+                  <li class="tag">4 kopie v každém balíčku</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Nejpřizpůsobivější z klasiky: špičkou dolů ucpe důlek, plochou stranou dolů zakryje rovný úsek na tři pole a nastojato sedne na schod o jedno pole.</p>
+              <p class="freq">Zhruba 1 z 10 kostek na levelu 1, 1 z 15 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="eska">
+              <div class="piece-art"><svg viewBox="0 0 60 40" width="60" height="40" role="img" aria-label="Eska: 4 pole, šířka 3, výška 2"><g fill="#4ade80"><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="1" width="18" height="18" rx="4"/><rect x="43" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🟩</span> Eska</h3>
+                <ul class="tags">
+                  <li class="tag tag-classic">Klasika</li>
+                  <li class="tag">4 pole</li>
+                  <li class="tag">4 kopie v každém balíčku</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Naležato potřebuje schod, který doprava stoupá o jedno pole, nastojato schod stoupající doleva. Na rovině vždycky nechá díru – to je práce pro odložení.</p>
+              <p class="freq">Zhruba 1 z 10 kostek na levelu 1, 1 z 15 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="zetko">
+              <div class="piece-art"><svg viewBox="0 0 60 40" width="60" height="40" role="img" aria-label="Zetko: 4 pole, šířka 3, výška 2"><g fill="#f87171"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🟥</span> Zetko</h3>
+                <ul class="tags">
+                  <li class="tag tag-classic">Klasika</li>
+                  <li class="tag">4 pole</li>
+                  <li class="tag">4 kopie v každém balíčku</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Zrcadlová Eska: naležato chce schod stoupající o jedno pole doleva, nastojato doprava. Když na povrchu udržíš aspoň jeden takový schod, nikdy neublíží.</p>
+              <p class="freq">Zhruba 1 z 10 kostek na levelu 1, 1 z 15 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="jecko">
+              <div class="piece-art"><svg viewBox="0 0 60 40" width="60" height="40" role="img" aria-label="Jéčko: 4 pole, šířka 3, výška 2"><g fill="#60a5fa"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🔵</span> Jéčko</h3>
+                <ul class="tags">
+                  <li class="tag tag-classic">Klasika</li>
+                  <li class="tag">4 pole</li>
+                  <li class="tag">4 kopie v každém balíčku</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Dopadnout umí čtyřmi způsoby: naležato na rovný úsek tří polí, nastojato na rovnou dvojici sloupců, vzhůru nohama s nožkou o pole níž než příčka, nebo dlouhou stranou do dvě pole hluboké mezery vedle vyššího sloupce.</p>
+              <p class="freq">Zhruba 1 z 10 kostek na levelu 1, 1 z 15 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="elko">
+              <div class="piece-art"><svg viewBox="0 0 60 40" width="60" height="40" role="img" aria-label="Elko: 4 pole, šířka 3, výška 2"><g fill="#fb923c"><rect x="41" y="1" width="18" height="18" rx="4"/><rect x="43" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🟧</span> Elko</h3>
+                <ul class="tags">
+                  <li class="tag tag-classic">Klasika</li>
+                  <li class="tag">4 pole</li>
+                  <li class="tag">4 kopie v každém balíčku</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Zrcadlové dvojče Jéčka – stejné čtyři způsoby dopadu, jen převrácené zleva doprava. Spolu najdou místo skoro na jakémkoli povrchu.</p>
+              <p class="freq">Zhruba 1 z 10 kostek na levelu 1, 1 z 15 od levelu 6.</p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="section" aria-labelledby="g-common">
+          <h2 id="g-common">Běžné divné tvary</h2>
+          <p class="section-intro">Váha 3: v balíčku až tři kopie od každého. Malé a přátelské – hlavně nářadí na opravy.</p>
+          <ul class="grid grid-2">
+            <li class="card piece" id="tecka">
+              <div class="piece-art"><svg viewBox="0 0 20 20" width="20" height="20" role="img" aria-label="Tečka: 1 pole, šířka 1, výška 1"><g fill="#94a3b8"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">⚫</span> Tečka</h3>
+                <ul class="tags">
+                  <li class="tag tag-common">Běžný</li>
+                  <li class="tag">1 pole</li>
+                  <li class="tag">v balíčku až 3 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Jedno pole, které zalepí jakoukoli díru, ke které se dostaneš. Díky prodlevě před zamknutím ji zasuneš i bokem pod převis a ucpeš mezeru, která vypadá zazděná.</p>
+              <p class="freq">Zhruba 1 z 34 kostek na levelu 1, 1 z 20 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="domino">
+              <div class="piece-art"><svg viewBox="0 0 40 20" width="40" height="20" role="img" aria-label="Domino: 2 pole, šířka 2, výška 1"><g fill="#34d399"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🟢</span> Domino</h3>
+                <ul class="tags">
+                  <li class="tag tag-common">Běžný</li>
+                  <li class="tag">2 pole</li>
+                  <li class="tag">v balíčku až 3 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Dvě pole, která na rovině nikdy nenechají díru. Nastojato dorovná dvě pole hlubokou šachtu, naležato zavře mezeru širokou dvě pole. Šetři si ho na opravy.</p>
+              <p class="freq">Zhruba 1 z 34 kostek na levelu 1, 1 z 20 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="roh">
+              <div class="piece-art"><svg viewBox="0 0 40 40" width="40" height="40" role="img" aria-label="Roh: 3 pole, šířka 2, výška 2"><g fill="#2dd4bf"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🔷</span> Roh</h3>
+                <ul class="tags">
+                  <li class="tag tag-common">Běžný</li>
+                  <li class="tag">3 pole</li>
+                  <li class="tag">v balíčku až 3 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Malé eLko ze tří polí, které sedne na schod o jedno pole z obou stran a každý vnitřní roh zase zarovná. Jeden z nejpřátelštějších divných tvarů.</p>
+              <p class="freq">Zhruba 1 z 34 kostek na levelu 1, 1 z 20 od levelu 6.</p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="section" aria-labelledby="g-uncommon">
+          <h2 id="g-uncommon">Méně časté divné tvary</h2>
+          <p class="section-intro">Váha 2: v balíčku až dvě kopie od každého. Tvary z pěti a šesti polí, z nichž každý chce určitý povrch.</p>
+          <ul class="grid grid-2">
+            <li class="card piece" id="srdce">
+              <div class="piece-art"><svg viewBox="0 0 60 60" width="60" height="60" role="img" aria-label="Srdce: 6 polí, šířka 3, výška 3"><g fill="#fb7185"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="1" width="18" height="18" rx="4"/><rect x="43" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="41" width="18" height="18" rx="4"/><rect x="23" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">❤️</span> Srdce</h3>
+                <ul class="tags">
+                  <li class="tag tag-uncommon">Méně častý</li>
+                  <li class="tag">6 polí</li>
+                  <li class="tag">v balíčku až 2 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Přiletí špičkou dolů a chce důlek široký i hluboký přesně jedno pole; na rovině nechá díru pod každým obloučkem. Otočené obloučky dolů zase obkročí jeden výstupek.</p>
+              <p class="freq">Zhruba 1 z 51 kostek na levelu 1, 1 z 30 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="plus">
+              <div class="piece-art"><svg viewBox="0 0 60 60" width="60" height="60" role="img" aria-label="Plus: 5 polí, šířka 3, výška 3"><g fill="#f59e0b"><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="41" width="18" height="18" rx="4"/><rect x="23" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">➕</span> Plus</h3>
+                <ul class="tags">
+                  <li class="tag tag-uncommon">Méně častý</li>
+                  <li class="tag">5 polí</li>
+                  <li class="tag">v balíčku až 2 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Otáčení na něm nic nezmění, rozhoduje povrch: potřebuje důlek široký jedno pole s rameny přesně o pole výš. Jinde pod rameny uvězní dvě díry.</p>
+              <p class="freq">Zhruba 1 z 51 kostek na levelu 1, 1 z 30 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="pohar">
+              <div class="piece-art"><svg viewBox="0 0 60 40" width="60" height="40" role="img" aria-label="Pohár: 5 polí, šířka 3, výška 2"><g fill="#a3e635"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="1" width="18" height="18" rx="4"/><rect x="43" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🏆</span> Pohár</h3>
+                <ul class="tags">
+                  <li class="tag tag-uncommon">Méně častý</li>
+                  <li class="tag">5 polí</li>
+                  <li class="tag">v balíčku až 2 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Dnem dolů sedí čistě na rovném úseku tří polí a nahoře nechá misku na jedno pole – ideální místo pro Tečku nebo špičku Téčka. Vzhůru nohama spolkne jeden výstupek.</p>
+              <p class="freq">Zhruba 1 z 51 kostek na levelu 1, 1 z 30 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="cikcak">
+              <div class="piece-art"><svg viewBox="0 0 40 80" width="40" height="80" role="img" aria-label="Cikcak: 5 polí, šířka 2, výška 4"><g fill="#38bdf8"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="41" width="18" height="18" rx="4"/><rect x="23" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="61" width="18" height="18" rx="4"/><rect x="23" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🪜</span> Cikcak</h3>
+                <ul class="tags">
+                  <li class="tag tag-uncommon">Méně častý</li>
+                  <li class="tag">5 polí</li>
+                  <li class="tag">v balíčku až 2 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Naležato sedne na každou plochu se schodem o jedno pole, nastojato potřebuje mezi sousedními sloupci rozdíl dvou polí. Stejně jako Eska a Zetko nedopadne na úplnou rovinu bez díry.</p>
+              <p class="freq">Zhruba 1 z 51 kostek na levelu 1, 1 z 30 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="zirafa">
+              <div class="piece-art"><svg viewBox="0 0 40 80" width="40" height="80" role="img" aria-label="Žirafa: 5 polí, šířka 2, výška 4"><g fill="#f97316"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="41" width="18" height="18" rx="4"/><rect x="3" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="61" width="18" height="18" rx="4"/><rect x="3" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="61" width="18" height="18" rx="4"/><rect x="23" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🦒</span> Žirafa</h3>
+                <ul class="tags">
+                  <li class="tag tag-uncommon">Méně častý</li>
+                  <li class="tag">5 polí</li>
+                  <li class="tag">v balíčku až 2 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Čára s nožkou. Nastojato stojí na rovné dvojici sloupců, naležato zakryje rovný úsek na čtyři pole. Je vysoká čtyři pole, takže v dost hluboké šachtě smaže i čtyři řady naráz.</p>
+              <p class="freq">Zhruba 1 z 51 kostek na levelu 1, 1 z 30 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="dilek">
+              <div class="piece-art"><svg viewBox="0 0 60 60" width="60" height="60" role="img" aria-label="Dílek: 5 polí, šířka 3, výška 3"><g fill="#a78bfa"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="41" width="18" height="18" rx="4"/><rect x="23" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🧩</span> Dílek</h3>
+                <ul class="tags">
+                  <li class="tag tag-uncommon">Méně častý</li>
+                  <li class="tag">5 polí</li>
+                  <li class="tag">v balíčku až 2 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Vypadá zmateně, ale je shovívavý: v jedné poloze ucpe důlek, v druhé důlek s nestejně vysokými rameny a ve zbylých dvou sedne na schod o jedno pole na kteroukoli stranu. Než ho odložíš, zkus všechny polohy.</p>
+              <p class="freq">Zhruba 1 z 51 kostek na levelu 1, 1 z 30 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="sipka">
+              <div class="piece-art"><svg viewBox="0 0 60 60" width="60" height="60" role="img" aria-label="Šipka: 6 polí, šířka 3, výška 3"><g fill="#22d3ee"><rect x="41" y="1" width="18" height="18" rx="4"/><rect x="43" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="41" width="18" height="18" rx="4"/><rect x="3" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="41" width="18" height="18" rx="4"/><rect x="23" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="41" width="18" height="18" rx="4"/><rect x="43" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">➡️</span> Šipka</h3>
+                <ul class="tags">
+                  <li class="tag tag-uncommon">Méně častý</li>
+                  <li class="tag">6 polí</li>
+                  <li class="tag">v balíčku až 2 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Ve dvou polohách má rovnou základnu na tři pole, čistě dosedne na rovinu a nahoře nechá schody – přesně to, co mají rády Eska, Zetko a Roh. Ve zbylých dvou vyplní schodiště, které stoupá o pole na sloupec.</p>
+              <p class="freq">Zhruba 1 z 51 kostek na levelu 1, 1 z 30 od levelu 6.</p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="section" aria-labelledby="g-rare">
+          <h2 id="g-rare">Vzácné divné tvary</h2>
+          <p class="section-intro">Váha 1: v balíčku nejvýš jedna kopie. Velké a neohrabané kusy – připrav jim místo, nebo je odlož.</p>
+          <ul class="grid grid-2">
+            <li class="card piece" id="blesk">
+              <div class="piece-art"><svg viewBox="0 0 60 80" width="60" height="80" role="img" aria-label="Blesk: 6 polí, šířka 3, výška 4"><g fill="#facc15"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="41" width="18" height="18" rx="4"/><rect x="23" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="61" width="18" height="18" rx="4"/><rect x="23" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="61" width="18" height="18" rx="4"/><rect x="43" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">⚡</span> Blesk</h3>
+                <ul class="tags">
+                  <li class="tag tag-rare">Vzácný</li>
+                  <li class="tag">6 polí</li>
+                  <li class="tag">v balíčku nejvýš 1 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Naležato sedne na plochu, která v půlce stoupne o jedno pole, nebo na malé schodiště; nastojato potřebuje římsu o dvě pole výš než podlaha vedle. Když nic z toho na povrchu nemáš, odlož ho.</p>
+              <p class="freq">Zhruba 1 z 103 kostek na levelu 1, 1 z 59 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="strom">
+              <div class="piece-art"><svg viewBox="0 0 60 80" width="60" height="80" role="img" aria-label="Strom: 6 polí, šířka 3, výška 4"><g fill="#22c55e"><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="41" width="18" height="18" rx="4"/><rect x="23" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="61" width="18" height="18" rx="4"/><rect x="23" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🌲</span> Strom</h3>
+                <ul class="tags">
+                  <li class="tag tag-rare">Vzácný</li>
+                  <li class="tag">6 polí</li>
+                  <li class="tag">v balíčku nejvýš 1 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Kmenem napřed: zasune se do šachty široké jedno pole a hluboké dvě, větve se opřou o ramena po stranách. Naležato je to tyč na čtyři pole s výčnělkem dole, který potřebuje důlek.</p>
+              <p class="freq">Zhruba 1 z 103 kostek na levelu 1, 1 z 59 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="hvezda">
+              <div class="piece-art"><svg viewBox="0 0 60 80" width="60" height="80" role="img" aria-label="Hvězda: 7 polí, šířka 3, výška 4"><g fill="#fde047"><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="41" width="18" height="18" rx="4"/><rect x="23" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="61" width="18" height="18" rx="4"/><rect x="3" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="61" width="18" height="18" rx="4"/><rect x="43" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">⭐</span> Hvězda</h3>
+                <ul class="tags">
+                  <li class="tag tag-rare">Vzácný</li>
+                  <li class="tag">7 polí</li>
+                  <li class="tag">v balíčku nejvýš 1 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Nejzlomyslnější vzácný tvar: ať ji otočíš jakkoli, má v boku kapsu, do které nic nespadne. Smiř se s dírou a vyber, kde bude – vysoko, u kraje a daleko od šachty na Tangle.</p>
+              <p class="freq">Zhruba 1 z 103 kostek na levelu 1, 1 z 59 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="pismeno-a">
+              <div class="piece-art"><svg viewBox="0 0 60 80" width="60" height="80" role="img" aria-label="Písmeno A: 8 polí, šířka 3, výška 4"><g fill="#f472b6"><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="41" width="18" height="18" rx="4"/><rect x="3" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="41" width="18" height="18" rx="4"/><rect x="43" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="61" width="18" height="18" rx="4"/><rect x="3" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="61" width="18" height="18" rx="4"/><rect x="43" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🅰️</span> Písmeno A</h3>
+                <ul class="tags">
+                  <li class="tag tag-rare">Vzácný</li>
+                  <li class="tag">8 polí</li>
+                  <li class="tag">v balíčku nejvýš 1 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Nohama obkročí úzký výstupek vysoký dvě pole – přesně to, co na rovině nechá Domino nastojato. Vzhůru nohama potřebuje důlek a nahoře nechá dvě pole hlubokou mezeru pro Domino nebo Čáru.</p>
+              <p class="freq">Zhruba 1 z 103 kostek na levelu 1, 1 z 59 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="spirala">
+              <div class="piece-art"><svg viewBox="0 0 60 60" width="60" height="60" role="img" aria-label="Spirála: 7 polí, šířka 3, výška 3"><g fill="#818cf8"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="1" width="18" height="18" rx="4"/><rect x="43" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="41" width="18" height="18" rx="4"/><rect x="3" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="41" width="18" height="18" rx="4"/><rect x="23" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="41" width="18" height="18" rx="4"/><rect x="43" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🌀</span> Spirála</h3>
+                <ul class="tags">
+                  <li class="tag tag-rare">Vzácný</li>
+                  <li class="tag">7 polí</li>
+                  <li class="tag">v balíčku nejvýš 1 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Otoč ji otvorem nahoru: pak sedí rovně na úseku tří polí a uprostřed nechá dvě pole hlubokou mezeru pro Domino nebo Čáru. Otvorem do boku uvězní pod horní příčkou dvě pole.</p>
+              <p class="freq">Zhruba 1 z 103 kostek na levelu 1, 1 z 59 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="raketa">
+              <div class="piece-art"><svg viewBox="0 0 60 80" width="60" height="80" role="img" aria-label="Raketa: 8 polí, šířka 3, výška 4"><g fill="#ef4444"><rect x="21" y="1" width="18" height="18" rx="4"/><rect x="23" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="21" width="18" height="18" rx="4"/><rect x="3" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="21" width="18" height="18" rx="4"/><rect x="43" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="41" width="18" height="18" rx="4"/><rect x="3" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="41" width="18" height="18" rx="4"/><rect x="23" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="41" width="18" height="18" rx="4"/><rect x="43" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="61" width="18" height="18" rx="4"/><rect x="23" y="63" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="74" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🚀</span> Raketa</h3>
+                <ul class="tags">
+                  <li class="tag tag-rare">Vzácný</li>
+                  <li class="tag">8 polí</li>
+                  <li class="tag">v balíčku nejvýš 1 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Osm polí – spolu s Písmenem A největší kostka ve hře. Špičkou dolů potřebuje důlek široký jedno pole, naležato důlek široký dvě pole a hluboký jedno; na rovině pod křidélky zazdí díry. Když s ní smažeš řadu, odemkneš úspěch.</p>
+              <p class="freq">Zhruba 1 z 103 kostek na levelu 1, 1 z 59 od levelu 6.</p>
+            </li>
+            <li class="card piece" id="kostka">
+              <div class="piece-art"><svg viewBox="0 0 60 60" width="60" height="60" role="img" aria-label="Kostka: 5 polí, šířka 3, výška 3"><g fill="#e879f9"><rect x="1" y="1" width="18" height="18" rx="4"/><rect x="3" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="1" width="18" height="18" rx="4"/><rect x="43" y="3" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="14" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="21" y="21" width="18" height="18" rx="4"/><rect x="23" y="23" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="23" y="34" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="1" y="41" width="18" height="18" rx="4"/><rect x="3" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="3" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/><rect x="41" y="41" width="18" height="18" rx="4"/><rect x="43" y="43" width="14" height="4" rx="2" fill="#fff" fill-opacity=".45"/><rect x="43" y="54" width="14" height="3" rx="1.5" fill="#000" fill-opacity=".25"/></g></svg></div>
+              <div class="piece-head">
+                <h3><span class="emoji" aria-hidden="true">🎲</span> Kostka</h3>
+                <ul class="tags">
+                  <li class="tag tag-rare">Vzácný</li>
+                  <li class="tag">5 polí</li>
+                  <li class="tag">v balíčku nejvýš 1 kopie</li>
+                </ul>
+              </div>
+              <p class="piece-tip">Pět polí, která se dotýkají jen rohy, takže díry nechá vždycky. Odlož ji, nebo ji pusť vysoko u kraje, kde díry nezablokují řadu, kterou potřebuješ.</p>
+              <p class="freq">Zhruba 1 z 103 kostek na levelu 1, 1 z 59 od levelu 6.</p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="section" aria-labelledby="odd-tips">
+          <h2 id="odd-tips">Jak hrát s divnými tvary</h2>
+          <div class="panel">
+            <ul class="ticks">
+            <li><strong>Nesrovnávej všechno do roviny.</strong> Úplně rovná hromada sedí klasice, ale Plus, Srdce, Raketa i Strom potřebují důlek. Nech si jeden někde stranou od šachty.</li>
+            <li><strong>Odkládací políčko si nech pro vzácné tvary.</strong> Odložit Čtverec je v pořádku; odložit Čtverec, když se v náhledu blíží Hvězda, už ne.</li>
+            <li><strong>Čti náhled tří dalších kostek.</strong> Vzácný tvar se ohlásí tři kostky dopředu – dost času postavit mu důlek nebo schod.</li>
+            <li><strong>Tečka a Domino jsou tvoje nářadí.</strong> Neplýtvej jimi na volnou plochu; šetři je na jednotlivé mezery, které po sobě nechají větší tvary.</li>
+            <li><strong>Tangle neumí jen Čára.</strong> Každá kostka vysoká čtyři pole – Cikcak, Žirafa, Blesk, Strom, Hvězda, Písmeno A a Raketa – smaže čtyři řady naráz, když má hromada správné zářezy. A Tangle divným tvarem odemkne úspěch.</li>
+            <li><strong>Když se díře nevyhneš, vyber jí místo.</strong> Nech ji u povrchu a daleko od šachty, kde se rychle vyhrabe – ne na dně pod deseti řadami.</li>
+            </ul>
+            <p class="muted">Ovládání, bodování a další tipy najdeš na stránce <a href="../jak-hrat/">Jak hrát</a>.</p>
+          </div>
+        </section>
+
+        <section class="section cta-final panel" aria-labelledby="cta-final">
+          <h2 id="cta-final">Najdi všech 24</h2>
+          <p>Raketa přiletí na levelu 1 zhruba jednou za 103 kostek. Stoupej levely, ať ji potkáváš častěji – nebo začni v Chaosu, kde jsou všechny divné tvary v balíčku od první kostky.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-play" href="../">Hrát Tangletris</a>
+            <a class="btn btn-ghost" href="../?mode=chaos">Hrát Chaos</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <nav class="footer-nav" aria-label="Stránky">
+          <ul>
+          <li><a class="" href="../">Hrát</a></li>
+          <li><a href="../jak-hrat/">Jak hrát</a></li>
+          <li><a href="./" aria-current="page">Tvary</a></li>
+          <li><a href="../svety/">Světy</a></li>
+          <li><a href="../denni/">Denní výzva</a></li>
+          </ul>
+        </nav>
+        <p>Autor: Robert Libsansky · Zdarma a open source pod <a href="https://github.com/RobertLib/tangletris/blob/main/LICENSE">licencí MIT</a> · <a href="https://github.com/RobertLib/tangletris">Zdrojový kód na GitHubu</a></p>
+        <p class="tm">Tetris® je ochranná známka společnosti The Tetris Company. Tangletris je nezávislá hra a s ní není nijak spojena.</p>
+      </div>
+    </footer>
+  </body>
+</html>

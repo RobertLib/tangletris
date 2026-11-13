@@ -6,6 +6,7 @@
 import * as THREE from "three";
 import { Reflector } from "three/addons/objects/Reflector.js";
 import { NOISE_GLSL, starField, hdr, rng, clamp, lerp } from "./common.js";
+import { META } from "./meta.js";
 
 // Everything that should appear in the lake's reflection also lives on this
 // layer; the mirror camera renders nothing else.
@@ -365,26 +366,7 @@ function growTree(r, b, opts) {
 /* ========================================================================== */
 
 export default {
-  id: "sakura",
-  name: "Sakura",
-  track: "sakura",
-  palette: {
-    accent: "#ff8fbf",
-    accent2: "#ffbe5c",
-    text: "#fff0f4",
-    dim: "#cfaac4",
-    panel: "rgba(38, 16, 46, 0.56)",
-    panel2: "rgba(24, 10, 34, 0.52)",
-    border: "rgba(255, 168, 206, 0.22)",
-    borderStrong: "rgba(255, 196, 132, 0.42)",
-    board: "#150a1f",
-    grid: "#ff8fbf",
-    frame: "#ff7aab",
-    light: "#ffe4ee",
-    fade: "#1b0b1f",
-  },
-  bloom: { strength: 0.6, radius: 0.55, threshold: 0.82 },
-  exposure: 1.0,
+  ...META.sakura,
 
   create(env) {
     const scene = new THREE.Scene();

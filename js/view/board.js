@@ -541,17 +541,32 @@ export class Board {
       this.kick("z", -6 * this.motion);
       this.kick("pitch", 0.5 * this.motion);
     });
+    // A run that reached its goal keeps its stack and gets a lap of honour.
+    game.on("finish", () => {
+      this.active.id = -1;
+      this.ring(0, 16, this.palette.accent2);
+      this.onLevelUp();
+    });
+    game.on("sweep", (s) => this.onSweep(s));
     game.on("start", () => {
-      this.crumbled = false;
-      this.falling.length = 0;
-      this.blocks.count = 0;
-      for (let y = 0; y < ROWS; y++) {
-        this.flash[y].fill(0);
-        this.drop[y].fill(0);
-        this.pop[y].fill(0);
-      }
+      this.reset();
       this.kick("z", 4 * this.motion);
     });
+    game.on("quit", () => {
+      this.active.id = -1;
+      this.reset();
+    });
+  }
+
+  reset() {
+    this.crumbled = false;
+    this.falling.length = 0;
+    this.blocks.count = 0;
+    for (let y = 0; y < ROWS; y++) {
+      this.flash[y].fill(0);
+      this.drop[y].fill(0);
+      this.pop[y].fill(0);
+    }
   }
 
   kick(name, amount) {
@@ -654,6 +669,23 @@ export class Board {
       }
     }
     if (c.perfect) this.ring(0, 16, this.palette.accent2);
+  }
+
+  // Zen's full stack bursts into shards instead of ending the game.
+  onSweep(s) {
+    for (let y = 0; y < ROWS; y++) {
+      this.flash[y].fill(0);
+      this.drop[y].fill(0);
+      this.pop[y].fill(0);
+      for (let x = 0; x < COLS; x++) {
+        const id = s.board[y][x];
+        if (id === null) continue;
+        this.spawnShards(cellX(x), cellY(y), pieceColors[id], 1);
+        if ((x + y) % 3 === 0) this.burstSparks(cellX(x), cellY(y), 0.4, pieceColors[id], 2, 4);
+      }
+    }
+    this.ring(0, 16, this.palette.frame);
+    this.kick("z", 5 * this.motion);
   }
 
   onLevelUp() {
@@ -832,15 +864,15 @@ export class Board {
     const mesh = this.settled;
     let n = 0;
 
-    if (st.mode === "dying" && !this.crumbled && st.deathT >= DEATH_ANIM_MS * GREY_WAVE) {
+    const dying = st.mode === "dying" && st.result === "topout";
+    if (dying && !this.crumbled && st.deathT >= DEATH_ANIM_MS * GREY_WAVE) {
       this.collapse();
     }
 
     if (!this.crumbled) {
       const clearing = st.clearing;
       const cp = clearing ? Math.min(1, clearing.t / CLEAR_ANIM_MS) : 0;
-      const wave =
-        st.mode === "dying" ? Math.floor((st.deathT / (DEATH_ANIM_MS * GREY_WAVE)) * ROWS) : -1;
+      const wave = dying ? Math.floor((st.deathT / (DEATH_ANIM_MS * GREY_WAVE)) * ROWS) : -1;
       const decay = Math.exp(-dt * 7);
       const dropK = Math.min(1, dt * 14);
 

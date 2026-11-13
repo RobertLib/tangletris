@@ -4,28 +4,10 @@
    ========================================================================== */
 import * as THREE from "three";
 import { NOISE_GLSL, gradientSky, starField, glowSprite, hdr, rng } from "./common.js";
+import { META } from "./meta.js";
 
 export default {
-  id: "neon",
-  name: "Neon Drive",
-  track: "neon",
-  palette: {
-    accent: "#22d3ee",
-    accent2: "#f472b6",
-    text: "#f3eeff",
-    dim: "#b3a3d6",
-    panel: "rgba(24, 10, 46, 0.58)",
-    panel2: "rgba(14, 6, 30, 0.55)",
-    border: "rgba(255, 120, 230, 0.2)",
-    borderStrong: "rgba(120, 230, 255, 0.4)",
-    board: "#0c0620",
-    grid: "#ff6ad5",
-    frame: "#22d3ee",
-    light: "#ffd6f5",
-    fade: "#12041f",
-  },
-  bloom: { strength: 0.7, radius: 0.5, threshold: 0.8 },
-  exposure: 1.0,
+  ...META.neon,
 
   create(env) {
     const scene = new THREE.Scene();

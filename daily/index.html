@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Daily Tangle — A Free Daily Puzzle Challenge | Tangletris</title>
+    <meta name="description" content="A daily Tetris-style challenge: one three-minute game a day, the same pieces for everyone, a streak to keep and a result to share. Resets at local midnight.">
+    <meta name="author" content="Robert Libsansky">
+    <meta name="theme-color" content="#0c0620">
+    <meta name="color-scheme" content="dark">
+    <link rel="canonical" href="https://robertlib.github.io/tangletris/daily/">
+    <link rel="alternate" hreflang="en" href="https://robertlib.github.io/tangletris/daily/">
+    <link rel="alternate" hreflang="cs" href="https://robertlib.github.io/tangletris/cs/denni/">
+    <link rel="alternate" hreflang="x-default" href="https://robertlib.github.io/tangletris/daily/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Tangletris">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="cs_CZ">
+    <meta property="og:title" content="Daily Tangle — A Free Daily Puzzle Challenge | Tangletris">
+    <meta property="og:description" content="A daily Tetris-style challenge: one three-minute game a day, the same pieces for everyone, a streak to keep and a result to share. Resets at local midnight.">
+    <meta property="og:url" content="https://robertlib.github.io/tangletris/daily/">
+    <meta property="og:image" content="https://robertlib.github.io/tangletris/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Tangletris: a glossy 3D falling-block board in front of a cherry-blossom lake at twilight">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Daily Tangle — A Free Daily Puzzle Challenge | Tangletris">
+    <meta name="twitter:description" content="A daily Tetris-style challenge: one three-minute game a day, the same pieces for everyone, a streak to keep and a result to share. Resets at local midnight.">
+    <meta name="twitter:image" content="https://robertlib.github.io/tangletris/og-image.jpg">
+
+    <link rel="icon" href="../icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+    <link rel="preload" href="../fonts/press-start-2p-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../pages.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Tangletris","item":"https://robertlib.github.io/tangletris/"},{"@type":"ListItem","position":2,"name":"Daily","item":"https://robertlib.github.io/tangletris/daily/"}]}
+</script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="logo" href="../"><span class="logo-a">Tangle</span><span class="logo-b">tris</span><span class="sr-only"> – play the game</span></a>
+        <nav class="site-nav" aria-label="Main">
+          <ul>
+          <li><a class="nav-play" href="../">Play</a></li>
+          <li><a href="../how-to-play/">How to play</a></li>
+          <li><a href="../pieces/">Pieces</a></li>
+          <li><a href="../worlds/">Worlds</a></li>
+          <li><a href="./" aria-current="page">Daily</a></li>
+          </ul>
+        </nav>
+        <a class="lang-switch" href="../cs/denni/" hreflang="cs" lang="cs" aria-label="Tato stránka česky">Česky</a>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap">
+        <div class="hero">
+          <nav class="crumbs" aria-label="Breadcrumb">
+            <ol>
+              <li><a href="../">Tangletris</a></li>
+              <li><span aria-current="page">Daily</span></li>
+            </ol>
+          </nav>
+          <h1>The Daily Tangle</h1>
+          <p class="lead">One short game a day, the same for everyone. Three minutes on the clock, today’s pieces in today’s order, and a streak that grows every day you show up — a daily puzzle for falling-block fans.</p>
+          <p class="daily-widget" id="daily-today" hidden>
+            <span>Today:</span>
+            <strong>Daily Tangle #<span data-daily="number"></span></strong>
+            <span class="dot" aria-hidden="true">·</span>
+            <span><span data-daily="tangle"></span>% tangled</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>next one in <span data-daily="countdown"></span></span>
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-play" href="../?mode=daily">Play today’s Daily Tangle</a>
+            <a class="btn btn-ghost" href="../how-to-play/">How to play</a>
+          </div>
+        </div>
+
+        <section class="section" aria-labelledby="rules">
+          <h2 id="rules">How it works</h2>
+          <div class="panel">
+            <ol class="steps">
+              <li><strong>Three minutes.</strong> The clock starts with the first piece. Score as much as you can before time runs out.</li>
+              <li><strong>The same deal for everyone.</strong> The date is the seed: everybody playing Daily Tangle #N gets the same pieces in the same order, wherever they are.</li>
+              <li><strong>A fixed tangle.</strong> Each day is tangled to its own degree — between 50% and 100% of the odd shapes, in 5% steps — and it stays fixed for the whole run, however fast you level up.</li>
+              <li><strong>A new one at midnight.</strong> The Daily follows your own clock, the way Wordle does: a fresh puzzle at local midnight, with the same number for everyone.</li>
+              <li><strong>Replays allowed.</strong> Play again as often as you like — your best attempt of the day is the one that counts.</li>
+              <li><strong>Keep the streak.</strong> Play on consecutive days and your streak grows; miss a day and it starts again from one.</li>
+              <li><strong>Share it.</strong> At the end you get a short, spoiler-free result to paste anywhere, with a link that opens today’s Daily Tangle:</li>
+            </ol>
+            <p class="share-sample"><samp>Tangletris Daily #12 🧩
+18,430 · 37 lines · 75 % tangled
+🔥 5-day streak</samp></p>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="daily-tips">
+          <h2 id="daily-tips">Tips for a three-minute run</h2>
+          <div class="panel">
+            <ul class="ticks">
+              <li><strong>Check the tangle first.</strong> At 50% it plays like an early Marathon; at 100% every odd shape is in the bag, so keep the hold slot free for the rare ones.</li>
+              <li><strong>Every attempt deals the same pieces in the same order.</strong> Replay, and you know when the Rocket arrives — plan for it.</li>
+              <li><strong>Three minutes is short.</strong> Tangles and back-to-back bonuses pay more than playing it safe — but a topped-out board ends the run early.</li>
+              <li><strong>Points scale with level.</strong> Lines cleared late in the run are worth more, and the pieces fall faster, too.</li>
+            </ul>
+            <p class="muted">New to the odd shapes? The <a href="../pieces/">pieces guide</a> shows where each one wants to go.</p>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="daily-faq">
+          <h2 id="daily-faq">Quick answers</h2>
+          <div class="faq">
+            <div class="card">
+              <h3>Do I need an account?</h3>
+              <p>No. Your best score of the day and your streak are kept in this browser’s local storage.</p>
+            </div>
+            <div class="card">
+              <h3>When does the next one start?</h3>
+              <p>At midnight on your device’s clock — the countdown above shows how long is left.</p>
+            </div>
+            <div class="card">
+              <h3>What does “% tangled” mean?</h3>
+              <p>The chance that each copy of an odd shape makes it into the bag. At 100%, every bag holds all 17 odd shapes.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section cta-final panel" aria-labelledby="cta-final">
+          <h2 id="cta-final">Today’s puzzle is waiting</h2>
+          <p>Three minutes. The same pieces as everyone else. Go.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-play" href="../?mode=daily">Play today’s Daily Tangle</a>
+            <a class="btn btn-ghost" href="../pieces/">Learn the pieces</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <nav class="footer-nav" aria-label="Site">
+          <ul>
+          <li><a class="" href="../">Play</a></li>
+          <li><a href="../how-to-play/">How to play</a></li>
+          <li><a href="../pieces/">Pieces</a></li>
+          <li><a href="../worlds/">Worlds</a></li>
+          <li><a href="./" aria-current="page">Daily</a></li>
+          </ul>
+        </nav>
+        <p>Made by Robert Libsansky · Free and open source under the <a href="https://github.com/RobertLib/tangletris/blob/main/LICENSE">MIT licence</a> · <a href="https://github.com/RobertLib/tangletris">Source code on GitHub</a></p>
+        <p class="tm">Tetris® is a trademark of The Tetris Company. Tangletris is an independent game and is not affiliated with it.</p>
+      </div>
+    </footer>
+    <script type="module">
+      import { dailyNumber, dailyTangle, msToNextDaily, formatCountdown } from "../js/daily.js";
+
+      const box = document.getElementById("daily-today");
+      const field = (k) => box.querySelector('[data-daily="' + k + '"]');
+      function render() {
+        const now = new Date();
+        const n = dailyNumber(now);
+        if (n < 1) return;
+        field("number").textContent = n;
+        field("tangle").textContent = Math.round(dailyTangle(now) * 100);
+        field("countdown").textContent = formatCountdown(msToNextDaily(now));
+        box.hidden = false;
+      }
+      render();
+      setInterval(render, 1000);
+    </script>
+  </body>
+</html>
